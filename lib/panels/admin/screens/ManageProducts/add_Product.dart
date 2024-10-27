@@ -1,6 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:io'; // Import for File class
 import 'package:mobile_vault/services/database_product.dart';
 
 class AddProducts extends StatefulWidget {
@@ -11,30 +11,28 @@ class AddProducts extends StatefulWidget {
 }
 
 class _AddProductsState extends State<AddProducts> {
-  // Text controllers
   TextEditingController productTitle = TextEditingController();
   TextEditingController productDescription = TextEditingController();
   TextEditingController productPrice = TextEditingController();
-  File? selectedImage;
+  TextEditingController productTags = TextEditingController();
 
-  // Dropdown variables
-  String? selectedBrand;
-  String? selectedCategory;
+  String? selectedBrand; // To hold the selected brand
+  String? selectedCategory; // To hold the selected category
+  List<String> brands = ['Samsung', 'Apple', 'OnePlus']; // Example brand list
+  List<String> categories = [
+    'Mobile',
+    'Tablet',
+    'Laptop'
+  ]; // Example category list
 
-  // Dropdown items
-  final List<String> brands = [
-    'Apple',
-    'Samsung',
-    'Huawei',
-    'Xiaomi',
-    'OnePlus'
-  ];
-  final List<String> categories = [
-    'Smartphones',
-    'Tablets',
-    'Accessories',
-    'Chargers'
-  ];
+  XFile? selectedImage; // To hold the selected image file
+
+  // Function to pick an image
+  Future<void> pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    selectedImage = await picker.pickImage(source: ImageSource.gallery);
+    setState(() {}); // Update the UI after image selection
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +40,10 @@ class _AddProductsState extends State<AddProducts> {
       appBar: AppBar(
         iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
-        title: Text("Add Products", style: TextStyle(color: Colors.white)),
+        title: Text(
+          "Add Products",
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: Colors.blue,
       ),
       body: SingleChildScrollView(
@@ -85,14 +86,12 @@ class _AddProductsState extends State<AddProducts> {
                 ),
                 keyboardType: TextInputType.number,
               ),
-              const SizedBox(height: 20),
-
-              // Brand Dropdown
+              const SizedBox(height: 10),
               Text("Select Brand"),
               DropdownButtonFormField<String>(
                 value: selectedBrand,
-                items: brands.map((String brand) {
-                  return DropdownMenuItem(
+                items: brands.map((brand) {
+                  return DropdownMenuItem<String>(
                     value: brand,
                     child: Text(brand),
                   );
@@ -108,15 +107,12 @@ class _AddProductsState extends State<AddProducts> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 10),
-
-              // Category Dropdown
               Text("Select Category"),
               DropdownButtonFormField<String>(
                 value: selectedCategory,
-                items: categories.map((String category) {
-                  return DropdownMenuItem(
+                items: categories.map((category) {
+                  return DropdownMenuItem<String>(
                     value: category,
                     child: Text(category),
                   );
@@ -132,38 +128,51 @@ class _AddProductsState extends State<AddProducts> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 10),
+              Text("Product Tags (comma separated)"),
+              TextFormField(
+                controller: productTags,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  hintText: "Enter Product Tags",
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text("Select Product Image"),
               ElevatedButton(
-                onPressed: () async {
-                  final ImagePicker _picker = ImagePicker();
-                  final XFile? imageFile =
-                      await _picker.pickImage(source: ImageSource.gallery);
-                  if (imageFile != null) {
-                    setState(() {
-                      selectedImage = File(imageFile.path);
-                    });
-                  }
-                },
-                child: Text("Pick an Image"),
+                onPressed: pickImage,
+                child: Text(
+                    selectedImage == null ? "Choose Image" : "Change Image"),
               ),
               if (selectedImage != null)
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Image.file(selectedImage!, height: 100, width: 100),
+                  padding: const EdgeInsets.only(top: 10.0),
+                  child: Image.file(
+                    File(selectedImage!.path), // Convert XFile to File
+                    height: 100,
+                    width: 100,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               const SizedBox(height: 20),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
                 onPressed: () async {
+                  List<String> tags = productTags.text
+                      .split(',')
+                      .map((tag) => tag.trim())
+                      .toList();
                   try {
                     await DatabaseProduct().addProduct(
                       productTitle.text,
                       productDescription.text,
                       productPrice.text,
-                      selectedImage,
+                      File(selectedImage!.path), // Convert XFile to File here
                       selectedBrand!,
                       selectedCategory!,
+                      tags,
                     );
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text("Product added successfully!")),
@@ -172,6 +181,7 @@ class _AddProductsState extends State<AddProducts> {
                     productTitle.clear();
                     productDescription.clear();
                     productPrice.clear();
+                    productTags.clear();
                     setState(() {
                       selectedImage = null;
                       selectedBrand = null;

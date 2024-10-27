@@ -10,6 +10,7 @@ class UpdateProduct extends StatefulWidget {
   final String initialPrice;
   final String initialBrands;
   final String initialCategories;
+  final String initialTags; // Added for initial tags
   final File? selectedImage;
 
   UpdateProduct({
@@ -19,6 +20,7 @@ class UpdateProduct extends StatefulWidget {
     required this.initialPrice,
     required this.initialCategories,
     required this.initialBrands,
+    required this.initialTags, // Added for tags
     this.selectedImage,
     super.key,
   });
@@ -32,6 +34,7 @@ class _UpdateProductState extends State<UpdateProduct> {
   final TextEditingController productTitle = TextEditingController();
   final TextEditingController productDescription = TextEditingController();
   final TextEditingController productPrice = TextEditingController();
+  final TextEditingController productTags = TextEditingController(); // Added for tags
   File? selectedImage;
 
   // Dropdown variables
@@ -54,7 +57,6 @@ class _UpdateProductState extends State<UpdateProduct> {
   ];
 
   @override
-  @override
   void initState() {
     super.initState();
 
@@ -62,6 +64,7 @@ class _UpdateProductState extends State<UpdateProduct> {
     productTitle.text = widget.initialTitle;
     productDescription.text = widget.initialDescription;
     productPrice.text = widget.initialPrice;
+    productTags.text = widget.initialTags; // Initialize tags
 
     // Check and set initial dropdown values or set defaults
     selectedBrand = brands.contains(widget.initialBrands)
@@ -72,6 +75,17 @@ class _UpdateProductState extends State<UpdateProduct> {
         : categories.first;
 
     selectedImage = widget.selectedImage;
+  }
+
+  Future<void> pickImage() async {
+    final ImagePicker _picker = ImagePicker();
+    final XFile? imageFile =
+        await _picker.pickImage(source: ImageSource.gallery);
+    if (imageFile != null) {
+      setState(() {
+        selectedImage = File(imageFile.path); // Convert XFile to File
+      });
+    }
   }
 
   @override
@@ -116,6 +130,18 @@ class _UpdateProductState extends State<UpdateProduct> {
                   hintText: "Enter Product Price",
                 ),
                 keyboardType: TextInputType.number,
+              ),
+              SizedBox(height: 10),
+
+              // Tags Text Field
+              TextFormField(
+                controller: productTags,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  hintText: "Enter Product Tags (comma separated)",
+                ),
               ),
 
               const SizedBox(height: 20),
@@ -166,16 +192,7 @@ class _UpdateProductState extends State<UpdateProduct> {
 
               const SizedBox(height: 10),
               ElevatedButton(
-                onPressed: () async {
-                  final ImagePicker _picker = ImagePicker();
-                  final XFile? imageFile =
-                      await _picker.pickImage(source: ImageSource.gallery);
-                  if (imageFile != null) {
-                    setState(() {
-                      selectedImage = File(imageFile.path);
-                    });
-                  }
-                },
+                onPressed: pickImage, // Use the new method
                 child: Text("Pick an Image"),
               ),
               if (selectedImage != null)
@@ -188,14 +205,21 @@ class _UpdateProductState extends State<UpdateProduct> {
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
                 onPressed: () async {
                   try {
+                    // Convert tags to a list
+                    List<String> tags = productTags.text
+                        .split(',')
+                        .map((tag) => tag.trim())
+                        .toList();
+
                     await DatabaseProduct().updateProduct(
                       widget.docId,
                       productTitle.text,
                       productDescription.text,
                       productPrice.text,
-                      selectedImage,
+                      selectedImage, // Pass the selected image
                       selectedBrand!,
                       selectedCategory!,
+                      tags, // Pass the tags
                     );
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text("Product Updated Successfully!")),

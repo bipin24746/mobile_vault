@@ -28,6 +28,7 @@ class DatabaseProduct {
     File? image,
     String brands,
     String categories,
+    List<String> tags,
   ) async {
     String? imageUrl;
 
@@ -42,6 +43,7 @@ class DatabaseProduct {
       "imageUrl": imageUrl,
       "brands": brands,
       "categories": categories,
+      "tags": tags,
     });
   }
 
@@ -52,16 +54,16 @@ class DatabaseProduct {
 
   // Update
   Future<void> updateProduct(
-    String id,
+    String id, // Added id parameter
     String title,
     String description,
     String price,
     File? image,
     String brands,
     String categories,
+    List<String> tags,
   ) async {
     String? imageUrl;
-
     // Check if a new image is provided
     if (image != null) {
       imageUrl = await uploadImageToFirebase(image);
@@ -79,11 +81,12 @@ class DatabaseProduct {
       "imageUrl": imageUrl,
       "brands": brands,
       "categories": categories,
+      "tags": tags,
     });
   }
 
   // Delete
-  Future<void> deleteProduct(String id) {
-    return evaultProductDetails.doc(id).delete();
+  Future<void> deleteProduct(String id) async {
+    await evaultProductDetails.doc(id).delete();
   }
 }
