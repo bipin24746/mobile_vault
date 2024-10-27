@@ -8,9 +8,11 @@ class DeleteProducts extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scaffoldMessenger =
+        ScaffoldMessenger.of(context); // Capture before dialog
     return IconButton(
       onPressed: () async {
-        bool confirmed = await showDialog(
+        bool? confirmed = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
             title: Text("Delete Product"),
@@ -28,11 +30,17 @@ class DeleteProducts extends StatelessWidget {
           ),
         );
 
-        if (confirmed) {
-          await DatabaseProduct().deleteProduct(productId);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Product deleted successfully!")),
-          );
+        if (confirmed == true) {
+          try {
+            await DatabaseProduct().deleteProduct(productId);
+            scaffoldMessenger.showSnackBar(
+              SnackBar(content: Text("Product deleted successfully!")),
+            );
+          } catch (e) {
+            scaffoldMessenger.showSnackBar(
+              SnackBar(content: Text("Failed to delete product: $e")),
+            );
+          }
         }
       },
       icon: Icon(Icons.delete, color: Colors.red),

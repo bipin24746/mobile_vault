@@ -88,6 +88,8 @@ class _ReadProductsState extends State<ReadProducts> {
                     initialTitle: map['productTitle'] ?? '',
                     initialDescription: map['productDescription'] ?? '',
                     initialPrice: map['productPrice'] ?? '',
+                    initialCategories: '',
+                    initialBrands: '',
                   ),
                 ),
               );

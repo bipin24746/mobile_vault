@@ -22,7 +22,13 @@ class DatabaseProduct {
 
   // Create
   Future<void> addProduct(
-      String title, String description, String price, File? image) async {
+    String title,
+    String description,
+    String price,
+    File? image,
+    String brands,
+    String categories,
+  ) async {
     String? imageUrl;
 
     if (image != null) {
@@ -34,6 +40,8 @@ class DatabaseProduct {
       "productDescription": description,
       "productPrice": price,
       "imageUrl": imageUrl,
+      "brands": brands,
+      "categories": categories,
     });
   }
 
@@ -43,19 +51,34 @@ class DatabaseProduct {
   }
 
   // Update
-  Future<void> updateProduct(String id, String title, String description,
-      String price, File? image) async {
+  Future<void> updateProduct(
+    String id,
+    String title,
+    String description,
+    String price,
+    File? image,
+    String brands,
+    String categories,
+  ) async {
     String? imageUrl;
 
+    // Check if a new image is provided
     if (image != null) {
       imageUrl = await uploadImageToFirebase(image);
+    } else {
+      // Retrieve existing imageUrl if image is null
+      DocumentSnapshot snapshot = await evaultProductDetails.doc(id).get();
+      imageUrl = snapshot['imageUrl'];
     }
 
+    // Update document
     await evaultProductDetails.doc(id).update({
       "productTitle": title,
       "productDescription": description,
       "productPrice": price,
       "imageUrl": imageUrl,
+      "brands": brands,
+      "categories": categories,
     });
   }
 
