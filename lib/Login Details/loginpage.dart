@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 import 'package:flutter/material.dart';
 import 'package:mobile_vault/Login%20Details/forgetpassword.dart';
 import 'package:mobile_vault/Login%20Details/registerpage.dart';
-import 'package:mobile_vault/panels/user/screens/homepage.dart';
 import 'package:mobile_vault/panels/admin/screens/admin_home.dart';
 import 'package:mobile_vault/panels/user/user_main.dart'; // Import your admin home screen
 
@@ -17,7 +16,7 @@ class Loginpage extends StatefulWidget {
 class _LoginpageState extends State<Loginpage> {
   TextEditingController emailAddress = TextEditingController();
   TextEditingController loginPassword = TextEditingController();
-  bool obsecureText = true; // For hiding/showing password
+  bool obsecureText = true;
 
   final FirebaseAuth auth = FirebaseAuth.instance;
 
@@ -36,32 +35,13 @@ class _LoginpageState extends State<Loginpage> {
       UserCredential userCredential = await auth.signInWithEmailAndPassword(
           email: email, password: password);
 
-      // Retry logic for fetching user role
-      DocumentSnapshot? userDoc; // Make userDoc nullable
-      bool fetched = false;
-      for (int i = 0; i < 3; i++) {
-        // Retry 3 times
-        try {
-          userDoc = await FirebaseFirestore.instance
-              .collection('users')
-              .doc(userCredential.user!.uid)
-              .get();
-          fetched = true;
-          break; // Exit loop if successful
-        } catch (e) {
-          if (i < 2) {
-            // If it's not the last attempt, wait and retry
-            await Future.delayed(const Duration(seconds: 2));
-          }
-        }
-      }
+      // Fetch user role
+      DocumentSnapshot? userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .get();
 
-      if (!fetched) {
-        throw Exception(
-            "Failed to fetch user document after multiple attempts.");
-      }
-      if (userDoc != null && userDoc.exists) {
-        // Check if userDoc is not null
+      if (userDoc.exists) {
         String role = userDoc['role'];
         print("User role fetched: $role"); // Debug statement
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -73,7 +53,6 @@ class _LoginpageState extends State<Loginpage> {
           Navigator.pushReplacement(
               context, MaterialPageRoute(builder: (context) => AdminHome()));
         } else {
-          // Corrected else statement
           Navigator.pushReplacement(
               context, MaterialPageRoute(builder: (context) => UserPage()));
         }
@@ -82,13 +61,15 @@ class _LoginpageState extends State<Loginpage> {
             const SnackBar(content: Text("User document does not exist.")));
       }
     } on FirebaseAuthException catch (e) {
-      // Handle login errors (same as your existing implementation)
+      // Handle login errors
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(e.message.toString())));
     } catch (e) {
-      // Handle other errors
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Error: $e")));
+      if (mounted) {
+        // Only show SnackBar if the widget is still mounted
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Error: $e")));
+      }
     }
   }
 
@@ -109,101 +90,61 @@ class _LoginpageState extends State<Loginpage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.only(top: 90, left: 50),
-              child: Text("Enter Login Details",
-                  style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue)),
-            ),
-            const SizedBox(height: 20),
-            const Padding(
-              padding: EdgeInsets.only(left: 30),
-              child: Text("Enter Your Email",
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-            ),
             Padding(
-              padding: const EdgeInsets.all(15.0),
+              padding: const EdgeInsets.all(10.0),
               child: TextField(
                 controller: emailAddress,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20)),
-                  hintText: "Enter Your Email",
+                  hintText: "Email ID",
+                  prefixIcon: const Icon(Icons.email),
                 ),
+                keyboardType: TextInputType.emailAddress, // Added email type
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.only(left: 30),
-              child: Text("Enter Your Password",
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-            ),
             Padding(
-              padding: const EdgeInsets.all(15),
+              padding: const EdgeInsets.all(10.0),
               child: TextField(
                 controller: loginPassword,
                 obscureText: obsecureText,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20)),
-                  hintText: "Enter Your Password",
+                  hintText: "Password",
+                  prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
+                    icon: Icon(
+                        obsecureText ? Icons.visibility : Icons.visibility_off),
                     onPressed: () {
                       setState(() {
-                        obsecureText = !obsecureText; // Toggle visibility
+                        obsecureText =
+                            !obsecureText; // Toggle password visibility
                       });
                     },
-                    icon: Icon(
-                        obsecureText ? Icons.visibility_off : Icons.visibility),
                   ),
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => ForgetPassword()));
-                    },
-                    child: Text("Forget Password?"),
-                  )
-                ],
-              ),
-            ),
-            Center(
-              child: ElevatedButton(
-                onPressed: loginUser,
-                child:
-                    const Text("Login", style: TextStyle(color: Colors.white)),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-              ),
+            const SizedBox(height: 15),
+            ElevatedButton(
+              onPressed: loginUser,
+              child: const Text("Login", style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
             ),
             const SizedBox(height: 10),
-            Center(
-              child: Column(
-                children: [
-                  const Text("Don't have an account?"),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const Registerpage()));
-                    },
-                    child: const Text("Create Account",
-                        style: TextStyle(color: Colors.white)),
-                    style:
-                        ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                  ),
-                ],
-              ),
+            const Text("Don't Have An Account?",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => Registerpage()));
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+              child: const Text("Register",
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ],
         ),

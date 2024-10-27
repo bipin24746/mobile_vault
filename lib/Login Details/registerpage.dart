@@ -43,8 +43,8 @@ class _RegisterpageState extends State<Registerpage> {
     }
 
     try {
-      UserCredential userCredential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(email: email, password: password);
+      UserCredential userCredential = await auth.createUserWithEmailAndPassword(
+          email: email, password: password);
 
       // Save user role in Firestore
       String role = "user"; // Default role
