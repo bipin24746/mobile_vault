@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_vault/panels/admin/screens/ManageProducts/deleteProducts.dart';
 import 'package:mobile_vault/panels/admin/screens/ManageProducts/updateProduct.dart';
-
 import 'package:mobile_vault/services/database_product.dart';
 
 class ReadProducts extends StatefulWidget {
@@ -35,8 +34,7 @@ class _ReadProductsState extends State<ReadProducts> {
           }
 
           List<DocumentSnapshot> data = snapshot.data!.docs;
-          print(
-              "Fetched ${data.length} products from Firestore"); // Debug print
+          print("Fetched ${data.length} products from Firestore");
 
           return ListView.builder(
             itemCount: data.length,
@@ -61,18 +59,31 @@ class _ReadProductsState extends State<ReadProducts> {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Display product image if available
+          if (map['imageUrl'] != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: Image.network(
+                map['imageUrl'],
+                width: 80,
+                height: 80,
+                fit: BoxFit.cover,
+              ),
+            ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Title: ${map['productTitle'] ?? 'N/A'}",
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(
+                  "Title: ${map['title'] ?? 'N/A'}",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
                 SizedBox(height: 4),
-                Text("Description: ${map['productDescription'] ?? 'N/A'}"),
+                Text("Description: ${map['description'] ?? 'N/A'}"),
                 SizedBox(height: 4),
-                Text("Price: \Rs.${map['productPrice'] ?? 'N/A'}"),
+                Text("Price: \Rs.${map['price']?.toString() ?? 'N/A'}"),
               ],
             ),
           ),
@@ -81,18 +92,21 @@ class _ReadProductsState extends State<ReadProducts> {
             onPressed: () {
               // Navigate to UpdateProduct and pass current values
               Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => UpdateProduct(
-                    docId: docId,
-                    initialTitle: map['productTitle'] ?? '',
-                    initialDescription: map['productDescription'] ?? '',
-                    initialPrice: map['productPrice'] ?? '',
-                    initialCategories: '',
-                    initialBrands: '', initialTags: '',
-                  ),
-                ),
-              );
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => UpdateProduct(
+                      docId: docId,
+                      initialTitle: map['title'] ?? '',
+                      initialDescription: map['description'] ?? '',
+                      initialPrice: map['price']?.toString() ?? '',
+                      initialCategories: map['category'] ?? '',
+                      initialBrands: map['brand'] ?? '',
+                      initialTags: map['tags'] != null
+                          ? List<String>.from(
+                              map['tags']) // Ensure tags are a List<String>
+                          : [], // Pass an empty list if tags are null
+                    ),
+                  ));
             },
           ),
           DeleteProducts(productId: docId), // Delete button

@@ -18,9 +18,12 @@ class _CategoriesState extends State<Categories> {
           children: [
             _buildCategoryItem(
                 "Smartphones", 'lib/assets/images/smartphones.jpg'),
-            _buildCategoryItem("Tablet", 'lib/assets/images/tablet.jpg'),
+            _buildCategoryItem("Tablets", 'lib/assets/images/tablet.jpg'),
             _buildCategoryItem(
                 "Accessories", 'lib/assets/images/smartphones.jpg'),
+            _buildCategoryItem("Laptops", 'lib/assets/images/tablet.jpg'),
+            _buildCategoryItem("Watches", 'lib/assets/images/smartphones.jpg'),
+            _buildCategoryItem("Headphones", 'lib/assets/images/tablet.jpg'),
             // Add more items as needed with unique image paths
           ],
         ),
@@ -29,29 +32,40 @@ class _CategoriesState extends State<Categories> {
   }
 
   Widget _buildCategoryItem(String title, String imagePath) {
-    return Padding(
-      padding:
-          const EdgeInsets.symmetric(horizontal: 8.0), // Space between items
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          border: Border.all(),
-          borderRadius: BorderRadius.circular(30),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Row(
-            children: [
-              Image.asset(
-                imagePath,
-                width: 30,
-                height: 30,
-                fit: BoxFit.cover,
-              ),
-              SizedBox(width: 12), // Space between image and text
-              Text(title),
-            ],
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 10), // Space between items
+      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            blurRadius: 5,
+            spreadRadius: 2,
+            offset: Offset(0, 2), // changes position of shadow
           ),
-        ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Image.asset(
+            imagePath,
+            width: 40,
+            height: 40,
+            fit: BoxFit.cover,
+          ),
+          SizedBox(width: 5), // Space between image and text
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue,
+            ),
+          ),
+        ],
       ),
     );
   }

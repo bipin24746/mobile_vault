@@ -10,8 +10,8 @@ class UpdateProduct extends StatefulWidget {
   final String initialPrice;
   final String initialBrands;
   final String initialCategories;
-  final String initialTags; // Added for initial tags
-  final File? selectedImage;
+  final List<String> initialTags;
+  final String? initialImageUrl; // Added this line for initial image URL
 
   UpdateProduct({
     required this.docId,
@@ -20,8 +20,8 @@ class UpdateProduct extends StatefulWidget {
     required this.initialPrice,
     required this.initialCategories,
     required this.initialBrands,
-    required this.initialTags, // Added for tags
-    this.selectedImage,
+    required this.initialTags,
+    this.initialImageUrl, // Initialize the initial image URL
     super.key,
   });
 
@@ -34,7 +34,8 @@ class _UpdateProductState extends State<UpdateProduct> {
   final TextEditingController productTitle = TextEditingController();
   final TextEditingController productDescription = TextEditingController();
   final TextEditingController productPrice = TextEditingController();
-  final TextEditingController productTags = TextEditingController(); // Added for tags
+  final TextEditingController productTags = TextEditingController();
+
   File? selectedImage;
 
   // Dropdown variables
@@ -42,19 +43,8 @@ class _UpdateProductState extends State<UpdateProduct> {
   String? selectedCategory;
 
   // Dropdown items
-  final List<String> brands = [
-    'Apple',
-    'Samsung',
-    'Huawei',
-    'Xiaomi',
-    'OnePlus'
-  ];
-  final List<String> categories = [
-    'Smartphones',
-    'Tablets',
-    'Accessories',
-    'Chargers'
-  ];
+  final List<String> brands = ['Samsung', 'Apple', 'OnePlus'];
+  final List<String> categories = ['Mobile', 'Tablet', 'Laptop'];
 
   @override
   void initState() {
@@ -64,17 +54,17 @@ class _UpdateProductState extends State<UpdateProduct> {
     productTitle.text = widget.initialTitle;
     productDescription.text = widget.initialDescription;
     productPrice.text = widget.initialPrice;
-    productTags.text = widget.initialTags; // Initialize tags
+    productTags.text = widget.initialTags.join(', '); // Join tags for display
 
-    // Check and set initial dropdown values or set defaults
-    selectedBrand = brands.contains(widget.initialBrands)
-        ? widget.initialBrands
-        : brands.first;
+    // Set initial dropdown values, check for valid values
+    selectedBrand =
+        brands.contains(widget.initialBrands) ? widget.initialBrands : null;
     selectedCategory = categories.contains(widget.initialCategories)
         ? widget.initialCategories
-        : categories.first;
+        : null;
 
-    selectedImage = widget.selectedImage;
+    // Initialize the selected image if available
+    selectedImage = null; // Start with no image selected
   }
 
   Future<void> pickImage() async {
@@ -83,7 +73,7 @@ class _UpdateProductState extends State<UpdateProduct> {
         await _picker.pickImage(source: ImageSource.gallery);
     if (imageFile != null) {
       setState(() {
-        selectedImage = File(imageFile.path); // Convert XFile to File
+        selectedImage = File(imageFile.path);
       });
     }
   }
@@ -192,10 +182,19 @@ class _UpdateProductState extends State<UpdateProduct> {
 
               const SizedBox(height: 10),
               ElevatedButton(
-                onPressed: pickImage, // Use the new method
+                onPressed: pickImage,
                 child: Text("Pick an Image"),
               ),
-              if (selectedImage != null)
+              // Display image from URL if no new image is selected
+              if (selectedImage == null &&
+                  widget.initialImageUrl != null &&
+                  widget.initialImageUrl!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Image.network(widget.initialImageUrl!,
+                      height: 100, width: 100, fit: BoxFit.cover),
+                )
+              else if (selectedImage != null) // Show the picked image
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   child: Image.file(selectedImage!, height: 100, width: 100),
@@ -205,29 +204,32 @@ class _UpdateProductState extends State<UpdateProduct> {
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
                 onPressed: () async {
                   try {
-                    // Convert tags to a list
-                    List<String> tags = productTags.text
-                        .split(',')
-                        .map((tag) => tag.trim())
-                        .toList();
-
+                    // Call the updateProduct method with the necessary parameters
                     await DatabaseProduct().updateProduct(
                       widget.docId,
                       productTitle.text,
                       productDescription.text,
                       productPrice.text,
-                      selectedImage, // Pass the selected image
-                      selectedBrand!,
-                      selectedCategory!,
-                      tags, // Pass the tags
+                      selectedImage, // Pass the selected image (null if no new image)
+                      selectedBrand!, // Ensure this is not null
+                      selectedCategory!, // Ensure this is not null
+                      productTags.text
+                          .split(',')
+                          .map((tag) => tag.trim())
+                          .toList(), // Convert tags to a list
                     );
+
+                    // Show a success message
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text("Product Updated Successfully!")),
                     );
+
+                    // Navigate back to the previous screen
                     Navigator.pop(context);
                   } catch (e) {
+                    // Show an error message if the update fails
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Update Failed: $e")),
+                      SnackBar(content: Text("Update Failed: ${e.toString()}")),
                     );
                   }
                 },

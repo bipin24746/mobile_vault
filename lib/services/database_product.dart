@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class DatabaseProduct {
+  // Firestore collection reference
   final CollectionReference evaultProductDetails =
       FirebaseFirestore.instance.collection('Evault Products');
 
@@ -10,82 +11,94 @@ class DatabaseProduct {
   Future<String?> uploadImageToFirebase(File image) async {
     try {
       String filePath =
-          'product_images/${DateTime.now().millisecondsSinceEpoch}';
+          'product_images/${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      if (!await image.exists()) {
+        print("Image file does not exist");
+        return null;
+      }
+
       TaskSnapshot snapshot =
           await FirebaseStorage.instance.ref(filePath).putFile(image);
-      return await snapshot.ref.getDownloadURL();
+      String downloadUrl = await snapshot.ref.getDownloadURL();
+      print("Image uploaded successfully: $downloadUrl");
+      return downloadUrl;
     } catch (e) {
       print("Image upload failed: $e");
       return null;
     }
   }
 
-  // Create
   Future<void> addProduct(
     String title,
     String description,
     String price,
-    File? image,
-    String brands,
-    String categories,
+    File imageFile,
+    String brand,
+    String category,
     List<String> tags,
   ) async {
-    String? imageUrl;
+    try {
+      String? imageUrl = await uploadImageToFirebase(imageFile);
 
-    if (image != null) {
-      imageUrl = await uploadImageToFirebase(image);
+      if (imageUrl == null) {
+        throw Exception("Failed to upload image");
+      }
+
+      await evaultProductDetails.add({
+        'title': title,
+        'description': description,
+        'price': price,
+        'imageUrl': imageUrl,
+        'brand': brand,
+        'category': category,
+        'tags': tags,
+      });
+
+      print("Product added successfully: $title");
+    } catch (e) {
+      print('Error uploading product: $e');
+      throw e;
     }
-
-    await evaultProductDetails.add({
-      "productTitle": title,
-      "productDescription": description,
-      "productPrice": price,
-      "imageUrl": imageUrl,
-      "brands": brands,
-      "categories": categories,
-      "tags": tags,
-    });
   }
 
-  // Read
   Stream<QuerySnapshot> viewProducts() {
     return evaultProductDetails.snapshots();
   }
 
-  // Update
   Future<void> updateProduct(
-    String id, // Added id parameter
+    String id,
     String title,
     String description,
     String price,
     File? image,
-    String brands,
-    String categories,
+    String brand,
+    String category,
     List<String> tags,
   ) async {
-    String? imageUrl;
-    // Check if a new image is provided
-    if (image != null) {
-      imageUrl = await uploadImageToFirebase(image);
-    } else {
-      // Retrieve existing imageUrl if image is null
-      DocumentSnapshot snapshot = await evaultProductDetails.doc(id).get();
-      imageUrl = snapshot['imageUrl'];
-    }
+    try {
+      String? imageUrl;
 
-    // Update document
-    await evaultProductDetails.doc(id).update({
-      "productTitle": title,
-      "productDescription": description,
-      "productPrice": price,
-      "imageUrl": imageUrl,
-      "brands": brands,
-      "categories": categories,
-      "tags": tags,
-    });
+      if (image != null) {
+        imageUrl = await uploadImageToFirebase(image);
+      }
+
+      await evaultProductDetails.doc(id).update({
+        'title': title,
+        'description': description,
+        'price': price,
+        'brand': brand,
+        'category': category,
+        'tags': tags,
+        if (imageUrl != null) 'imageUrl': imageUrl,
+      });
+      print("Product updated successfully: $title");
+    } catch (e) {
+      print('Error updating product: $e');
+      throw e;
+    }
   }
 
-  // Delete
   Future<void> deleteProduct(String id) async {
     await evaultProductDetails.doc(id).delete();
   }

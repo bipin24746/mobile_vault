@@ -42,25 +42,31 @@ class _LoginpageState extends State<Loginpage> {
       print("User signed in successfully: ${userCredential.user!.uid}");
 
       // Firestore Role Check
+      // Firestore Role Check
       DocumentSnapshot userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(userCredential.user!.uid)
           .get();
 
-      if (userDoc.exists) {
-        String role = userDoc['role'];
+      if (userDoc.exists && userDoc.data() != null) {
+        String role =
+            userDoc['role'] ?? ''; // Use empty string if role is missing
+
         print("User role is: $role");
 
-        // Navigate based on role
         if (role == "admin") {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => AdminHome()),
           );
-        } else {
+        } else if (role == "user") {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => UserPage()),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("User role is undefined.")),
           );
         }
       } else {

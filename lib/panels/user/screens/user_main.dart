@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_vault/panels/user/screens/containers/categories.dart';
+import 'package:mobile_vault/panels/user/screens/containers/products.dart'; // Import ProductsPage
 import 'package:mobile_vault/panels/user/screens/containers/searchbar.dart';
 
 class UserPage extends StatelessWidget {
@@ -23,14 +24,15 @@ class UserPage extends StatelessWidget {
         ),
         backgroundColor: Colors.blue,
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: Searchbar(),
-          ),
-          Categories(),
-        ],
+      body: Container(
+        color: Colors.red, // Set the background color to red
+        child: Column(
+          children: [
+            Searchbar(),
+            Categories(),
+            Expanded(child: ProductsPage()), // Display products here
+          ],
+        ),
       ),
     );
   }

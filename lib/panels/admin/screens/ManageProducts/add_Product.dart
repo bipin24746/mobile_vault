@@ -19,11 +19,7 @@ class _AddProductsState extends State<AddProducts> {
   String? selectedBrand; // To hold the selected brand
   String? selectedCategory; // To hold the selected category
   List<String> brands = ['Samsung', 'Apple', 'OnePlus']; // Example brand list
-  List<String> categories = [
-    'Mobile',
-    'Tablet',
-    'Laptop'
-  ]; // Example category list
+  List<String> categories = ['Mobile', 'Tablet', 'Laptop']; // Example category list
 
   XFile? selectedImage; // To hold the selected image file
 
@@ -31,7 +27,10 @@ class _AddProductsState extends State<AddProducts> {
   Future<void> pickImage() async {
     final ImagePicker picker = ImagePicker();
     selectedImage = await picker.pickImage(source: ImageSource.gallery);
-    setState(() {}); // Update the UI after image selection
+
+    if (mounted) { // Check if the widget is still mounted
+      setState(() {}); // Update the UI after image selection
+    }
   }
 
   @override
@@ -40,10 +39,7 @@ class _AddProductsState extends State<AddProducts> {
       appBar: AppBar(
         iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
-        title: Text(
-          "Add Products",
-          style: TextStyle(color: Colors.white),
-        ),
+        title: Text("Add Products", style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.blue,
       ),
       body: SingleChildScrollView(
@@ -58,8 +54,7 @@ class _AddProductsState extends State<AddProducts> {
                 controller: productTitle,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
+                      borderRadius: BorderRadius.circular(25)),
                   hintText: "Enter Product Title",
                 ),
               ),
@@ -69,8 +64,7 @@ class _AddProductsState extends State<AddProducts> {
                 controller: productDescription,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
+                      borderRadius: BorderRadius.circular(25)),
                   hintText: "Enter Product Description",
                 ),
               ),
@@ -80,8 +74,7 @@ class _AddProductsState extends State<AddProducts> {
                 controller: productPrice,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
+                      borderRadius: BorderRadius.circular(25)),
                   hintText: "Enter Product Price",
                 ),
                 keyboardType: TextInputType.number,
@@ -103,8 +96,7 @@ class _AddProductsState extends State<AddProducts> {
                 },
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
+                      borderRadius: BorderRadius.circular(25)),
                 ),
               ),
               const SizedBox(height: 10),
@@ -124,8 +116,7 @@ class _AddProductsState extends State<AddProducts> {
                 },
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
+                      borderRadius: BorderRadius.circular(25)),
                 ),
               ),
               const SizedBox(height: 10),
@@ -134,8 +125,7 @@ class _AddProductsState extends State<AddProducts> {
                 controller: productTags,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
+                      borderRadius: BorderRadius.circular(25)),
                   hintText: "Enter Product Tags",
                 ),
               ),
@@ -160,11 +150,25 @@ class _AddProductsState extends State<AddProducts> {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
                 onPressed: () async {
+                  if (productTitle.text.isEmpty ||
+                      productDescription.text.isEmpty ||
+                      productPrice.text.isEmpty ||
+                      selectedBrand == null ||
+                      selectedCategory == null ||
+                      selectedImage == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Please fill all fields!")),
+                    );
+                    return;
+                  }
+
                   List<String> tags = productTags.text
                       .split(',')
                       .map((tag) => tag.trim())
                       .toList();
+
                   try {
+                    print("Adding product: ${productTitle.text}");
                     await DatabaseProduct().addProduct(
                       productTitle.text,
                       productDescription.text,
@@ -174,24 +178,31 @@ class _AddProductsState extends State<AddProducts> {
                       selectedCategory!,
                       tags,
                     );
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Product added successfully!")),
-                    );
-                    // Clear fields after submission
-                    productTitle.clear();
-                    productDescription.clear();
-                    productPrice.clear();
-                    productTags.clear();
-                    setState(() {
-                      selectedImage = null;
-                      selectedBrand = null;
-                      selectedCategory = null;
-                    });
-                    Navigator.pop(context);
+                    print("Product added successfully");
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Product added successfully!")),
+                      );
+                      // Clear fields after submission
+                      productTitle.clear();
+                      productDescription.clear();
+                      productPrice.clear();
+                      productTags.clear();
+                      setState(() {
+                        
+                        selectedImage = null;
+                        selectedBrand = null;
+                        selectedCategory = null;
+                      });
+                      Navigator.pop(context);
+                    }
                   } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Failed to add product: $e")),
-                    );
+                    print("Failed to add product: $e");
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Failed to add product: $e")),
+                      );
+                    }
                   }
                 },
                 child: Text("Submit", style: TextStyle(color: Colors.white)),
