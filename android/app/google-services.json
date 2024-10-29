@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "759415617887",
+    "project_id": "mobile-vault-5e4c8",
+    "storage_bucket": "mobile-vault-5e4c8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:759415617887:android:d48e8254c635dd990ddeea",
+        "android_client_info": {
+          "package_name": "com.example.Mobile_Vault"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBbEdJwmUIfaLLgcVouSekZURLT8ydZmVc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:759415617887:android:a85a6bbe63b764a30ddeea",
+        "android_client_info": {
+          "package_name": "com.example.mobile_vault"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBbEdJwmUIfaLLgcVouSekZURLT8ydZmVc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
