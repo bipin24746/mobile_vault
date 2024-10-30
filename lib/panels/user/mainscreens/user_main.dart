@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_vault/panels/user/screens/containers/categories.dart';
-import 'package:mobile_vault/panels/user/screens/containers/products.dart'; // Import ProductsPage
-import 'package:mobile_vault/panels/user/screens/containers/searchbar.dart';
+import 'package:mobile_vault/panels/user/mainscreens/containers/categories.dart';
+import 'package:mobile_vault/panels/user/mainscreens/containers/products.dart';
+import 'package:mobile_vault/panels/user/mainscreens/containers/searchbar.dart';
 
 class UserPage extends StatelessWidget {
   @override

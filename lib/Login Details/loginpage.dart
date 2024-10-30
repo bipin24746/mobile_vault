@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_vault/Login%20Details/forgetpassword.dart';
 import 'package:mobile_vault/Login%20Details/registerpage.dart';
 import 'package:mobile_vault/panels/admin/screens/admin_home.dart';
-import 'package:mobile_vault/panels/user/screens/user_main.dart';
+import 'package:mobile_vault/panels/user/mainscreens/user_main.dart';
 
 class Loginpage extends StatefulWidget {
   const Loginpage({super.key});

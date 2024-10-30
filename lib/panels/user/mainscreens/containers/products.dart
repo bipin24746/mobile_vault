@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mobile_vault/panels/user/productDetailsScreens/product_detail_page.dart';
 import 'package:mobile_vault/services/database_product.dart';
 
 class ProductsPage extends StatelessWidget {
@@ -14,22 +15,18 @@ class ProductsPage extends StatelessWidget {
         backgroundColor: Colors.red,
       ),
       body: Container(
-        color: Colors.red, // Set the background color to red
+        color: Colors.red,
         child: StreamBuilder<QuerySnapshot>(
-          stream: DatabaseProduct()
-              .viewProducts(), // Stream of products from Firestore
+          stream: DatabaseProduct().viewProducts(),
           builder: (context, snapshot) {
-            // Check the connection state
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(child: CircularProgressIndicator());
             }
 
-            // Check if there is no data or if the data list is empty
             if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
               return Center(child: Text("No products available"));
             }
 
-            // Get the list of products from the snapshot
             final products = snapshot.data!.docs;
 
             return SingleChildScrollView(
@@ -42,16 +39,11 @@ class ProductsPage extends StatelessWidget {
                   childAspectRatio: 0.75,
                 ),
                 itemBuilder: (context, i) {
-                  // Get product data as a map
                   final product = products[i].data() as Map<String, dynamic>;
 
-                  // Safely access fields (make sure these match your Firestore document structure)
-                  final imageUrl = product['imageUrl']; // Accessing image URL
-                  final title = product['title'] ??
-                      'No Title'; // Accessing title with a fallback
-
-                  final price = product['price']?.toString() ??
-                      '0'; // Accessing price with a fallback
+                  final imageUrl = product['imageUrl'];
+                  final title = product['title'] ?? 'No Title';
+                  final price = product['price']?.toString() ?? '0';
 
                   return Container(
                     width: double.infinity,
@@ -67,7 +59,16 @@ class ProductsPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         InkWell(
-                          onTap: () {},
+                          onTap: () {
+                            // Navigate to ProductDetailPage on tap
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    ProductDetailPage(product: product),
+                              ),
+                            );
+                          },
                           child: Container(
                             margin: const EdgeInsets.all(10),
                             child: imageUrl != null
@@ -77,7 +78,7 @@ class ProductsPage extends StatelessWidget {
                                 : Container(
                                     width: MediaQuery.of(context).size.width,
                                     height: 70,
-                                    color: Colors.grey, // Placeholder for image
+                                    color: Colors.grey,
                                   ),
                           ),
                         ),
@@ -90,9 +91,6 @@ class ProductsPage extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 5),
-
-                        const SizedBox(
-                            height: 5), // Added SizedBox to replace Spacer
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 5),
                           child: Row(
