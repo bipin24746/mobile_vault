@@ -1,9 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_vault/panels/user/mainscreens/containers/categories.dart';
+import 'package:mobile_vault/panels/user/mainscreens/containers/product_search_page.dart';
 import 'package:mobile_vault/panels/user/mainscreens/containers/products.dart';
 import 'package:mobile_vault/panels/user/mainscreens/containers/searchbar.dart';
 
 class UserPage extends StatelessWidget {
+  void onSearch(BuildContext context, String query) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductSearchPage(searchQuery: query),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,12 +35,17 @@ class UserPage extends StatelessWidget {
         backgroundColor: Colors.blue,
       ),
       body: Container(
-        color: Colors.red, // Set the background color to red
+        color: Colors.red,
         child: Column(
           children: [
-            Searchbar(),
-            Categories(),
-            Expanded(child: ProductsPage()), // Display products here
+            Searchbar(onSearch: (query) => onSearch(context, query)),
+            CategoriesPage(),
+            Expanded(
+              child: ProductsPage(
+                searchQuery: '',
+                category: '',
+              ),
+            ),
           ],
         ),
       ),

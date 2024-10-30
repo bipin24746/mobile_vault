@@ -3,11 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class DatabaseProduct {
-  // Firestore collection reference
   final CollectionReference evaultProductDetails =
       FirebaseFirestore.instance.collection('Evault Products');
 
-  // Upload image to Firebase Storage
   Future<String?> uploadImageToFirebase(File image) async {
     try {
       String filePath =
@@ -62,8 +60,15 @@ class DatabaseProduct {
     }
   }
 
-  Stream<QuerySnapshot> viewProducts() {
-    return evaultProductDetails.snapshots();
+  Stream<QuerySnapshot> viewProducts([String category = '']) {
+    if (category.isEmpty) {
+      return evaultProductDetails
+          .snapshots(); // Get all products if no category is specified
+    } else {
+      return evaultProductDetails
+          .where('category', isEqualTo: category)
+          .snapshots(); // Filter by category
+    }
   }
 
   Future<void> updateProduct(
