@@ -1,32 +1,34 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:mobile_vault/panels/user/productDetailsScreens/lib/panels/user/productDetailsScreens/product_detail_page.dart';
 
 import 'package:mobile_vault/services/database_product.dart';
 
-class ProductsPage extends StatelessWidget {
-  final String category;
+class CategoriesProducts extends StatelessWidget {
+  final String category; // Receive category as a parameter
 
-  ProductsPage({required this.category, required String searchQuery});
+  const CategoriesProducts({Key? key, required this.category})
+      : super(key: key); // Constructor to accept category
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Products",
+          "Products in $category",
           style: TextStyle(
               color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.red,
+        backgroundColor: Colors.blue,
       ),
       body: Container(
-        color: Colors.red,
+        color: Colors.white,
         child: Column(
           children: [
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                stream: DatabaseProduct().viewProducts(category),
+                stream: DatabaseProduct()
+                    .viewProducts(category), // Use the passed category
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());

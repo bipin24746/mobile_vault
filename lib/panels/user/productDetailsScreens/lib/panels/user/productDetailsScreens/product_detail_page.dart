@@ -1,8 +1,10 @@
 // product_detail_page.dart
 import 'package:flutter/material.dart';
-import 'package:mobile_vault/panels/user/productDetailsScreens/containers/ProductDescription.dart';
-import 'package:mobile_vault/panels/user/productDetailsScreens/containers/ProductImage.dart';
-import 'package:mobile_vault/panels/user/productDetailsScreens/containers/ProductTitlePrice.dart';
+
+import 'package:mobile_vault/panels/user/productDetailsScreens/lib/panels/user/productDetailsScreens/addbuyproducts.dart';
+import 'package:mobile_vault/panels/user/productDetailsScreens/lib/panels/user/productDetailsScreens/containers/ProductDescription.dart';
+import 'package:mobile_vault/panels/user/productDetailsScreens/lib/panels/user/productDetailsScreens/containers/ProductImage.dart';
+import 'package:mobile_vault/panels/user/productDetailsScreens/lib/panels/user/productDetailsScreens/containers/ProductTitlePrice.dart'; // Import the AddBuyProducts widget
 
 class ProductDetailPage extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -41,20 +43,25 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         ),
         backgroundColor: Colors.blue,
       ),
-      body: Container(
-        color: Colors.white,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ProductImage(
-                imageUrl: imageUrl,
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ProductImage(imageUrl: imageUrl),
+                  ProductTitlePrice(title: title, price: price),
+                  ProductDescription(description: description),
+                  // Add some spacer to ensure scrollability
+                  const SizedBox(height: 16), // Optional spacer
+                ],
               ),
-              ProductTitlePrice(title: title, price: price),
-              ProductDescription(description: description),
-            ],
+            ),
           ),
-        ),
+          // Use the new AddBuyProducts widget here
+          const AddBuyProducts(),
+        ],
       ),
     );
   }

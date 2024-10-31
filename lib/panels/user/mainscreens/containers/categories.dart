@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_vault/panels/user/mainscreens/containers/products.dart';
+import 'package:mobile_vault/panels/user/mainscreens/containers/categoriesProducts.dart';
 
 class CategoriesPage extends StatelessWidget {
   final List<String> categories = [
@@ -15,10 +15,8 @@ class CategoriesPage extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ProductsPage(
-          category: category,
-          searchQuery: '', // Pass an empty query for now
-        ),
+        builder: (context) =>
+            CategoriesProducts(category: category), // Pass selected category
       ),
     );
   }
@@ -37,7 +35,7 @@ class CategoriesPage extends StatelessWidget {
               margin: EdgeInsets.all(10),
               padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.blue, // Changed to red for consistency
+                color: Colors.blue,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
@@ -53,7 +51,7 @@ class CategoriesPage extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.white,
-                    fontWeight: FontWeight.bold, // Added bold for emphasis
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),

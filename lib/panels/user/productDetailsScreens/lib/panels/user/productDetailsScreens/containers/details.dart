@@ -1,8 +1,9 @@
 // product_detail_page.dart
 import 'package:flutter/material.dart';
-import 'package:mobile_vault/panels/user/productDetailsScreens/containers/ProductDescription.dart';
-import 'package:mobile_vault/panels/user/productDetailsScreens/containers/ProductImage.dart';
-import 'package:mobile_vault/panels/user/productDetailsScreens/containers/ProductTitlePrice.dart';
+
+import 'package:mobile_vault/panels/user/productDetailsScreens/lib/panels/user/productDetailsScreens/containers/ProductDescription.dart';
+import 'package:mobile_vault/panels/user/productDetailsScreens/lib/panels/user/productDetailsScreens/containers/ProductImage.dart';
+import 'package:mobile_vault/panels/user/productDetailsScreens/lib/panels/user/productDetailsScreens/containers/ProductTitlePrice.dart';
 
 class ProductDetailPage extends StatelessWidget {
   final Map<String, dynamic> product;
