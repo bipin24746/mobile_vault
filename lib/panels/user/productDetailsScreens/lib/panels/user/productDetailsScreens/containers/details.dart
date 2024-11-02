@@ -8,7 +8,7 @@ import 'package:mobile_vault/panels/user/productDetailsScreens/lib/panels/user/p
 class ProductDetailPage extends StatelessWidget {
   final Map<String, dynamic> product;
 
-  const ProductDetailPage({Key? key, required this.product}) : super(key: key);
+  const ProductDetailPage({Key? key, required this.product, required String userId}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

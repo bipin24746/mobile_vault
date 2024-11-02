@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_vault/panels/user/CartPage.dart';
+
 import 'package:mobile_vault/panels/user/mainscreens/containers/categories.dart';
 import 'package:mobile_vault/panels/user/mainscreens/containers/product_search_page.dart';
 import 'package:mobile_vault/panels/user/mainscreens/containers/products.dart';
 import 'package:mobile_vault/panels/user/mainscreens/containers/searchbar.dart';
 
 class UserPage extends StatelessWidget {
+  final String userId;
+
+  UserPage({required this.userId});
+
   void onSearch(BuildContext context, String query) {
     Navigator.push(
       context,
@@ -27,7 +33,14 @@ class UserPage extends StatelessWidget {
               style: TextStyle(color: Colors.white),
             ),
             IconButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CartPage(userId: userId),
+                  ),
+                );
+              },
               icon: Icon(Icons.shopping_cart, size: 35),
             ),
           ],

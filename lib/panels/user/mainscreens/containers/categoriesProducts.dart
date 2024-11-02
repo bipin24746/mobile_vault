@@ -67,7 +67,7 @@ class CategoriesProducts extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  ProductDetailPage(product: product),
+                                  ProductDetailPage(product: product, userId: '',),
                             ),
                           );
                         },

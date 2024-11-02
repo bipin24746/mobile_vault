@@ -5,7 +5,10 @@ import 'package:firebase_storage/firebase_storage.dart';
 class DatabaseProduct {
   final CollectionReference evaultProductDetails =
       FirebaseFirestore.instance.collection('Evault Products');
+  final CollectionReference cartCollection =
+      FirebaseFirestore.instance.collection('cart');
 
+  // Function to upload an image to Firebase Storage and get the URL
   Future<String?> uploadImageToFirebase(File image) async {
     try {
       String filePath =
@@ -27,6 +30,7 @@ class DatabaseProduct {
     }
   }
 
+  // Function to add a new product to Firestore
   Future<void> addProduct(
     String title,
     String description,
@@ -60,17 +64,7 @@ class DatabaseProduct {
     }
   }
 
-  Stream<QuerySnapshot> viewProducts([String category = '']) {
-    if (category.isEmpty) {
-      return evaultProductDetails
-          .snapshots(); // Get all products if no category is specified
-    } else {
-      return evaultProductDetails
-          .where('category', isEqualTo: category)
-          .snapshots(); // Filter by category
-    }
-  }
-
+  // Function to update an existing product in Firestore
   Future<void> updateProduct(
     String id,
     String title,
@@ -104,7 +98,44 @@ class DatabaseProduct {
     }
   }
 
+  // Function to delete a product from Firestore
   Future<void> deleteProduct(String id) async {
     await evaultProductDetails.doc(id).delete();
+  }
+
+  // Stream to view products by category, or all products if category is empty
+  Stream<QuerySnapshot> viewProducts([String category = '']) {
+    if (category.isEmpty) {
+      return evaultProductDetails
+          .snapshots(); // Get all products if no category is specified
+    } else {
+      return evaultProductDetails
+          .where('category', isEqualTo: category)
+          .snapshots(); // Filter by category
+    }
+  }
+
+  // Function to add a product to the cart collection
+  Future<void> addToCart(String userId, String productId, String title,
+      String price, String imageUrl,String description) async {
+    try {
+      await cartCollection.add({
+        'userId': userId,
+        'productId': productId,
+        'title': title,
+        'price': price,
+        'imageUrl': imageUrl,
+        'quantity': 1, // Default quantity is 1
+        'description':description
+      });
+      print("Product added to cart successfully.");
+    } catch (e) {
+      print("Failed to add product to cart: $e");
+    }
+  }
+
+  // Stream to view cart items for a specific user
+  Stream<QuerySnapshot> viewCartItems(String userId) {
+    return cartCollection.where('userId', isEqualTo: userId).snapshots();
   }
 }
