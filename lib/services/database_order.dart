@@ -1,24 +1,31 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 
 class DatabaseOrder {
   final CollectionReference ordersCollection =
       FirebaseFirestore.instance.collection('Orders');
 
-  // Method to fetch orders
-  Stream<QuerySnapshot> viewOrders() {
-    return ordersCollection.snapshots(); // No need for await here
-  }
+  Future<void> placeOrder(
+      String userId,
+      String userName,
+      String userAddress,
+      String userMobile,
+      String userEmail,
+      List<Map<String, dynamic>> products) async {
+    try {
+      await ordersCollection.add({
+        'userName': userName,
+        'userAddress': userAddress,
+        'userMobile': userMobile,
+        'userEmail': userEmail,
+        'products': products,
+        'orderDate':
+            FieldValue.serverTimestamp(), // Automatically set the order date
+        'status': 'Pending' // Initial status
+      });
 
-  // Method to create a new user document
-  Future<void> createUser(
-      String uid, String name, String email, String mobile, String role) async {
-    await FirebaseFirestore.instance.collection('users').doc(uid).set({
-      'name': name, // Field: name
-      'email': email, // Field: email
-      'mobile': mobile, // Field: mobile
-      'role': role, // Field: role (e.g., 'user' or 'admin')
-      'createdAt': FieldValue.serverTimestamp(), // Optional: Save creation time
-    });
+      print("Order placed successfully.");
+    } catch (e) {
+      print("Failed to place order: $e");
+    }
   }
 }

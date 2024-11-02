@@ -115,10 +115,28 @@ class DatabaseProduct {
     }
   }
 
+  // Function to check if a product is already in the cart
+  Future<bool> checkIfInCart(String userId, String productId) async {
+    final cartSnapshot = await cartCollection
+        .where('userId', isEqualTo: userId)
+        .where('productId', isEqualTo: productId)
+        .get();
+
+    return cartSnapshot.docs.isNotEmpty;
+  }
+
   // Function to add a product to the cart collection
   Future<void> addToCart(String userId, String productId, String title,
-      String price, String imageUrl,String description) async {
+      String price, String imageUrl, String description) async {
     try {
+      // Check if the product is already in the cart
+      bool isInCart = await checkIfInCart(userId, productId);
+
+      if (isInCart) {
+        print("Product is already in cart.");
+        return; // Prevent adding the same product again
+      }
+
       await cartCollection.add({
         'userId': userId,
         'productId': productId,
@@ -126,7 +144,7 @@ class DatabaseProduct {
         'price': price,
         'imageUrl': imageUrl,
         'quantity': 1, // Default quantity is 1
-        'description':description
+        'description': description
       });
       print("Product added to cart successfully.");
     } catch (e) {
