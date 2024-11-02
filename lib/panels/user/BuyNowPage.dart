@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mobile_vault/services/database_order.dart'; // Adjust the path as necessary
 
 class BuyNowPage extends StatefulWidget {
   final Map<String, dynamic> product;
-  final String userId;
 
   const BuyNowPage({
     Key? key,
     required this.product,
-    required this.userId,
   }) : super(key: key);
 
   @override
@@ -24,14 +24,37 @@ class _BuyNowPageState extends State<BuyNowPage> {
 
   int _quantity = 1;
 
+  double get totalPrice {
+    return double.parse(widget.product['price']) *
+        _quantity; // Calculate total price
+  }
+
   void _submitOrder() async {
     if (_formKey.currentState!.validate()) {
+      // Get the current user ID from FirebaseAuth
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+
+      // Ensure userId is not null
+      if (userId == null) {
+        print("Error: User is not logged in.");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Please log in to place an order.")),
+        );
+        return;
+      }
+
+      // Calculate total price based on quantity
+      double pricePerItem =
+          double.tryParse(widget.product['price'].toString()) ??
+              0.0; // Convert the product price to double
+      double totalPrice = pricePerItem * _quantity; // Calculate total price
+
       // Create a product list with the product details
       List<Map<String, dynamic>> products = [
         {
           'productId': widget.product['id'],
           'title': widget.product['title'],
-          'price': widget.product['price'],
+          'price': totalPrice.toString(), // Store total price in the database
           'quantity': _quantity,
           'imageUrl': widget.product['imageUrl'],
         }
@@ -39,7 +62,7 @@ class _BuyNowPageState extends State<BuyNowPage> {
 
       // Store the user details and product information in the database
       await DatabaseOrder().placeOrder(
-        widget.userId,
+        userId,
         _nameController.text,
         _addressController.text,
         _mobileController.text,
@@ -108,6 +131,13 @@ class _BuyNowPageState extends State<BuyNowPage> {
                     ],
                   ),
                 ],
+              ),
+              SizedBox(height: 20),
+
+              // Display the total price
+              Text(
+                "Total Price: Rs. ${totalPrice.toStringAsFixed(2)}", // Display total price
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 20),
 

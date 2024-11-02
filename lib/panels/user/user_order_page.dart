@@ -1,45 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class ViewOrderPage extends StatefulWidget {
-  final String userId;
-
-  const ViewOrderPage({Key? key, required this.userId}) : super(key: key);
-
-  @override
-  _ViewOrderPageState createState() => _ViewOrderPageState();
-}
-
-class _ViewOrderPageState extends State<ViewOrderPage> {
-  Future<void> confirmOrder(String orderId) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('Orders')
-          .doc(orderId)
-          .update({'status': 'Confirmed'});
-
-      print("Order confirmed successfully.");
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Order confirmed!")),
-        );
-      }
-    } catch (e) {
-      print("Failed to confirm order: $e");
-    }
-  }
+class UserOrderPage extends StatelessWidget {
+  final String userId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
   @override
   Widget build(BuildContext context) {
+    // Displaying the userId to confirm it's being retrieved correctly
+    print("User ID: $userId");
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Pending Orders"),
+        title: const Text("Your Orders"),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('Orders')
-            .where('status', isEqualTo: 'Pending')
+            .where('userId', isEqualTo: userId)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -49,7 +27,10 @@ class _ViewOrderPageState extends State<ViewOrderPage> {
             return Center(child: Text("Error: ${snapshot.error}"));
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text("No pending orders found."));
+            return Center(
+              child: Text(
+                  "No orders found for User ID: $userId"), // Shows userId for debugging
+            );
           }
 
           final orders = snapshot.data!.docs;
@@ -60,6 +41,9 @@ class _ViewOrderPageState extends State<ViewOrderPage> {
               final order = orders[index];
               final orderData = order.data() as Map<String, dynamic>;
               final products = orderData['products'] as List<dynamic>;
+              final status = orderData['status'] == 'Confirmed'
+                  ? "Your order has been confirmed"
+                  : "Pending";
 
               return Card(
                 margin: const EdgeInsets.all(10),
@@ -73,15 +57,10 @@ class _ViewOrderPageState extends State<ViewOrderPage> {
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 10),
-                      Text("Name: ${orderData['userName']}"),
-                      Text("Address: ${orderData['userAddress']}"),
-                      Text("Mobile: ${orderData['userMobile']}"),
-                      Text("Email: ${orderData['userEmail']}"),
+                      Text("Status: $status"),
                       const SizedBox(height: 10),
-                      Text("Order Date: ${orderData['orderDate']?.toDate()}"),
-                      const SizedBox(height: 10),
-                      const Text("Products:",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text("Products:",
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
                       ...products.map((product) {
                         return ListTile(
                           leading: Image.network(product['imageUrl']),
@@ -90,13 +69,6 @@ class _ViewOrderPageState extends State<ViewOrderPage> {
                           trailing: Text("Quantity: ${product['quantity']}"),
                         );
                       }).toList(),
-                      const SizedBox(height: 10),
-                      ElevatedButton(
-                        onPressed: () async {
-                          await confirmOrder(order.id);
-                        },
-                        child: const Text("Confirm Order"),
-                      ),
                     ],
                   ),
                 ),

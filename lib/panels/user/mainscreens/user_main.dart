@@ -5,6 +5,7 @@ import 'package:mobile_vault/panels/user/mainscreens/containers/categories.dart'
 import 'package:mobile_vault/panels/user/mainscreens/containers/product_search_page.dart';
 import 'package:mobile_vault/panels/user/mainscreens/containers/products.dart';
 import 'package:mobile_vault/panels/user/mainscreens/containers/searchbar.dart';
+import 'package:mobile_vault/panels/user/user_order_page.dart';
 
 class UserPage extends StatelessWidget {
   final String userId;
@@ -36,9 +37,7 @@ class UserPage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => CartPage(userId: userId),
-                  ),
+                  MaterialPageRoute(builder: (context) => UserOrderPage()),
                 );
               },
               icon: Icon(Icons.shopping_cart, size: 35),
