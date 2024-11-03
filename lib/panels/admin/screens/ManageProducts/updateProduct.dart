@@ -8,20 +8,22 @@ class UpdateProduct extends StatefulWidget {
   final String initialTitle;
   final String initialDescription;
   final String initialPrice;
-  final String initialBrands;
-  final String initialCategories;
+  final String initialBrand;
+  final String initialAccessory;
   final List<String> initialTags;
-  final String? initialImageUrl; // Added this line for initial image URL
+  final String? initialImageUrl;
+  final String? initialCategory; // Keep this for your reference
 
   UpdateProduct({
     required this.docId,
     required this.initialTitle,
     required this.initialDescription,
     required this.initialPrice,
-    required this.initialCategories,
-    required this.initialBrands,
+    required this.initialAccessory,
+    required this.initialBrand,
     required this.initialTags,
-    this.initialImageUrl, // Initialize the initial image URL
+    this.initialImageUrl,
+    this.initialCategory, // Keep this for your reference
     super.key,
   });
 
@@ -30,7 +32,6 @@ class UpdateProduct extends StatefulWidget {
 }
 
 class _UpdateProductState extends State<UpdateProduct> {
-  // Text controllers
   final TextEditingController productTitle = TextEditingController();
   final TextEditingController productDescription = TextEditingController();
   final TextEditingController productPrice = TextEditingController();
@@ -38,33 +39,30 @@ class _UpdateProductState extends State<UpdateProduct> {
 
   File? selectedImage;
 
-  // Dropdown variables
+  final String selectedCategory = 'Smartphones'; // Set static category
   String? selectedBrand;
-  String? selectedCategory;
+  String? selectedAccessory;
 
-  // Dropdown items
   final List<String> brands = ['Samsung', 'Apple', 'OnePlus'];
-  final List<String> categories = ['Mobile', 'Tablet', 'Laptop'];
+  final List<String> accessories = ['Charger', 'Earphones', 'Case'];
 
   @override
   void initState() {
     super.initState();
-
-    // Initialize text fields with initial values
     productTitle.text = widget.initialTitle;
     productDescription.text = widget.initialDescription;
     productPrice.text = widget.initialPrice;
-    productTags.text = widget.initialTags.join(', '); // Join tags for display
+    productTags.text = widget.initialTags.join(', ');
 
-    // Set initial dropdown values, check for valid values
-    selectedBrand =
-        brands.contains(widget.initialBrands) ? widget.initialBrands : null;
-    selectedCategory = categories.contains(widget.initialCategories)
-        ? widget.initialCategories
-        : null;
+    selectedBrand = widget.initialBrand;
 
-    // Initialize the selected image if available
-    selectedImage = null; // Start with no image selected
+    // Initialize selectedAccessory safely
+    if (widget.initialAccessory != null &&
+        accessories.contains(widget.initialAccessory)) {
+      selectedAccessory = widget.initialAccessory; // Valid accessory
+    } else {
+      selectedAccessory = null; // Reset if invalid or no accessory
+    }
   }
 
   Future<void> pickImage() async {
@@ -122,8 +120,6 @@ class _UpdateProductState extends State<UpdateProduct> {
                 keyboardType: TextInputType.number,
               ),
               SizedBox(height: 10),
-
-              // Tags Text Field
               TextFormField(
                 controller: productTags,
                 decoration: InputDecoration(
@@ -133,8 +129,13 @@ class _UpdateProductState extends State<UpdateProduct> {
                   hintText: "Enter Product Tags (comma separated)",
                 ),
               ),
-
               const SizedBox(height: 20),
+
+              // Static Category Display
+              Text("Category: $selectedCategory",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 20),
+
               // Brand Dropdown
               Text("Select Brand"),
               DropdownButtonFormField<String>(
@@ -157,77 +158,98 @@ class _UpdateProductState extends State<UpdateProduct> {
                 ),
               ),
 
-              const SizedBox(height: 10),
-              // Category Dropdown
-              Text("Select Category"),
-              DropdownButtonFormField<String>(
-                value: selectedCategory,
-                items: categories.map((String category) {
-                  return DropdownMenuItem(
-                    value: category,
-                    child: Text(category),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedCategory = value;
-                  });
-                },
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
+              // Accessories Dropdown, shown only if "Accessories" is selected
+              if (selectedCategory == 'Accessories')
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Select Accessory"),
+                    DropdownButtonFormField<String>(
+                      value: selectedAccessory,
+                      items: [
+                        DropdownMenuItem<String>(
+                          value: null, // Allow no selection
+                          child: Text("Select Accessory"),
+                        ),
+                        ...accessories.map((String accessory) {
+                          return DropdownMenuItem(
+                            value: accessory,
+                            child: Text(accessory),
+                          );
+                        }).toList(),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          selectedAccessory =
+                              value; // Allow it to be null if needed
+                        });
+                      },
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
 
               const SizedBox(height: 10),
               ElevatedButton(
                 onPressed: pickImage,
                 child: Text("Pick an Image"),
               ),
-              // Display image from URL if no new image is selected
               if (selectedImage == null &&
                   widget.initialImageUrl != null &&
                   widget.initialImageUrl!.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Image.network(widget.initialImageUrl!,
-                      height: 100, width: 100, fit: BoxFit.cover),
+                  child: Image.network(
+                    widget.initialImageUrl!,
+                    height: 100,
+                    width: 100,
+                    fit: BoxFit.cover,
+                  ),
                 )
-              else if (selectedImage != null) // Show the picked image
+              else if (selectedImage != null)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Image.file(selectedImage!, height: 100, width: 100),
+                  child: Image.file(
+                    selectedImage!,
+                    height: 100,
+                    width: 100,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               const SizedBox(height: 20),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
                 onPressed: () async {
                   try {
-                    // Call the updateProduct method with the necessary parameters
+                    List<String> tags = productTags.text.isNotEmpty
+                        ? productTags.text
+                            .split(',')
+                            .map((tag) => tag.trim())
+                            .toList()
+                        : [];
+
                     await DatabaseProduct().updateProduct(
                       widget.docId,
                       productTitle.text,
                       productDescription.text,
                       productPrice.text,
-                      selectedImage, // Pass the selected image (null if no new image)
-                      selectedBrand!, // Ensure this is not null
-                      selectedCategory!, // Ensure this is not null
-                      productTags.text
-                          .split(',')
-                          .map((tag) => tag.trim())
-                          .toList(), // Convert tags to a list
+                      selectedImage,
+                      selectedBrand ?? '',
+                      selectedAccessory ?? '',
+                      null,
+                      tags,
                     );
 
-                    // Show a success message
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text("Product Updated Successfully!")),
                     );
 
-                    // Navigate back to the previous screen
                     Navigator.pop(context);
                   } catch (e) {
-                    // Show an error message if the update fails
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text("Update Failed: ${e.toString()}")),
                     );

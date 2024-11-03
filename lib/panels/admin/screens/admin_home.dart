@@ -27,7 +27,7 @@ class _AdminHomeState extends State<AdminHome> {
         title: const Text(
           "Admin Panel",
           style: TextStyle(color: Colors.white),
-        ),
+        ), 
         backgroundColor: Colors.blue,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -94,78 +94,68 @@ class _AdminHomeState extends State<AdminHome> {
               padding: const EdgeInsets.only(top: 20),
               child: const Text(
                 "Welcome to Admin Page",
-                style: TextStyle(fontSize: 25),
+                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
               ),
             ),
           ),
           const SizedBox(height: 20),
           Expanded(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.shopping_bag),
-                        iconSize: 50,
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => ManageProductsAdmin()),
-                          );
-                        },
-                      ),
-                      const SizedBox(width: 20),
-                      IconButton(
-                        icon: const Icon(Icons.receipt_long),
-                        iconSize: 50,
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    ViewOrderPage(userId: userId)),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.people),
-                        iconSize: 50,
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => userInfo()),
-                          );
-                        },
-                      ),
-                      const SizedBox(width: 20),
-                      IconButton(
-                        icon: const Icon(Icons.settings),
-                        iconSize: 50,
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => Setting()),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+            child: GridView.count(
+              crossAxisCount: 2,
+              padding: const EdgeInsets.all(16),
+              mainAxisSpacing: 20,
+              crossAxisSpacing: 20,
+              children: [
+                _buildAdminButton(Icons.shopping_bag, "Manage Products", () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ManageProductsAdmin()),
+                  );
+                }),
+                _buildAdminButton(Icons.receipt_long, "View Orders", () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ViewOrderPage(userId: userId)),
+                  );
+                }),
+                _buildAdminButton(Icons.people, "User Info", () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => userInfo()),
+                  );
+                }),
+                _buildAdminButton(Icons.settings, "Settings", () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => Setting()),
+                  );
+                }),
+              ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAdminButton(IconData icon, String label, VoidCallback onTap) {
+    return Card(
+      elevation: 4,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 50),
+              const SizedBox(height: 8),
+              Text(label, style: const TextStyle(fontSize: 16)),
+            ],
+          ),
+        ),
       ),
     );
   }

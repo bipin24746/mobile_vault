@@ -1,5 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mobile_vault/panels/admin/screens/ManageProducts/deleteProducts.dart';
 import 'package:mobile_vault/panels/admin/screens/ManageProducts/updateProduct.dart';
 import 'package:mobile_vault/services/database_product.dart';
@@ -17,100 +17,157 @@ class _ReadProductsState extends State<ReadProducts> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text("E-Vault", style: TextStyle(color: Colors.white)),
+        title: const Text("E-Vault", style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.blue,
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: DatabaseProduct().viewProducts(),
+        stream: DatabaseProduct().viewProducts('', searchQuery: ''),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
             return Center(child: Text("Error: ${snapshot.error}"));
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text("No products available."));
+            return const Center(child: Text("No products available."));
           }
 
           List<DocumentSnapshot> data = snapshot.data!.docs;
-          print("Fetched ${data.length} products from Firestore");
 
           return ListView.builder(
             itemCount: data.length,
             itemBuilder: (context, index) {
-              DocumentSnapshot eachDoc = data[index];
-              Map<String, dynamic> map = eachDoc.data() as Map<String, dynamic>;
+              Map<String, dynamic> product =
+                  data[index].data() as Map<String, dynamic>;
 
-              return _buildProductCard(map, eachDoc.id);
+              // Fetching values with null checks
+              String title = product['title'] ?? 'No Title';
+              String description = product['description'] ?? 'No Description';
+              String price = product['price']?.toString() ?? '0';
+              String brand = product['brand'] ?? 'No Brand';
+              String accessory = product['accessory'] ?? 'No Accessory';
+              List<dynamic> tags = product['tags'] ?? [];
+              String imageUrl = product['imageUrl'] ?? '';
+
+              return Card(
+                margin: const EdgeInsets.all(10),
+                child: ListTile(
+                  title: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Padding(
+                    padding: const EdgeInsets.only(top: 5.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Description: $description",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text("Price: $price"),
+                        Text("Brand: $brand"),
+                        if (product['category'] == 'Accessories')
+                          Text("Accessory: $accessory"),
+                        Text("Tags: ${tags.join(', ')}"),
+                      ],
+                    ),
+                  ),
+                  leading: imageUrl.isNotEmpty
+                      ? Image.network(
+                          imageUrl,
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return const SizedBox(
+                              width: 50,
+                              height: 50,
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: 50,
+                              height: 50,
+                              color: Colors.grey,
+                              child:
+                                  const Icon(Icons.image, color: Colors.white),
+                            );
+                          },
+                        )
+                      : Container(
+                          width: 50,
+                          height: 50,
+                          color: Colors.grey,
+                          child: const Icon(Icons.image, color: Colors.white),
+                        ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => UpdateProduct(
+                                docId: data[index].id,
+                                initialTitle: title,
+                                initialDescription: description,
+                                initialPrice: price,
+                                initialBrand: brand,
+                                initialAccessory: accessory,
+                                initialTags: List<String>.from(tags),
+                                initialImageUrl: imageUrl,
+                                initialCategory: product['category'],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text("Delete Product"),
+                                content: const Text(
+                                    "Are you sure you want to delete this product?"),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text("Cancel"),
+                                  ),
+                                  TextButton(
+                                    onPressed: () async {
+                                      await DatabaseProduct()
+                                          .deleteProduct(data[index].id);
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text("Delete"),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              );
             },
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildProductCard(Map<String, dynamic> map, String docId) {
-    return Container(
-      padding: EdgeInsets.all(8),
-      margin: EdgeInsets.symmetric(vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Display product image if available
-          if (map['imageUrl'] != null)
-            Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: Image.network(
-                map['imageUrl'],
-                width: 80,
-                height: 80,
-                fit: BoxFit.cover,
-              ),
-            ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Title: ${map['title'] ?? 'N/A'}",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 4),
-                Text("Description: ${map['description'] ?? 'N/A'}"),
-                SizedBox(height: 4),
-                Text("Price: \Rs.${map['price']?.toString() ?? 'N/A'}"),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: Icon(Icons.edit),
-            onPressed: () {
-              // Navigate to UpdateProduct and pass current values
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => UpdateProduct(
-                      docId: docId,
-                      initialTitle: map['title'] ?? '',
-                      initialDescription: map['description'] ?? '',
-                      initialPrice: map['price']?.toString() ?? '',
-                      initialCategories: map['category'] ?? '',
-                      initialBrands: map['brand'] ?? '',
-                      initialTags: map['tags'] != null
-                          ? List<String>.from(
-                              map['tags']) // Ensure tags are a List<String>
-                          : [], // Pass an empty list if tags are null
-                    ),
-                  ));
-            },
-          ),
-          DeleteProducts(productId: docId), // Delete button
-        ],
       ),
     );
   }

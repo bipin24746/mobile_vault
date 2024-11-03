@@ -16,10 +16,16 @@ class _AddProductsState extends State<AddProducts> {
   TextEditingController productPrice = TextEditingController();
   TextEditingController productTags = TextEditingController();
 
-  String? selectedBrand; // To hold the selected brand
   String? selectedCategory; // To hold the selected category
+  String? selectedBrand; // To hold the selected brand
+  String? selectedAccessories; // To hold the selected accessories
+  List<String> categories = ['Smartphones', 'Accessories']; // Categories
   List<String> brands = ['Samsung', 'Apple', 'OnePlus']; // Example brand list
-  List<String> categories = ['Mobile', 'Tablet', 'Laptop']; // Example category list
+  List<String> accessories = [
+    'Charger',
+    'Case',
+    'Headphones'
+  ]; // Example accessories list
 
   XFile? selectedImage; // To hold the selected image file
 
@@ -28,7 +34,7 @@ class _AddProductsState extends State<AddProducts> {
     final ImagePicker picker = ImagePicker();
     selectedImage = await picker.pickImage(source: ImageSource.gallery);
 
-    if (mounted) { // Check if the widget is still mounted
+    if (mounted) {
       setState(() {}); // Update the UI after image selection
     }
   }
@@ -80,6 +86,28 @@ class _AddProductsState extends State<AddProducts> {
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 10),
+              Text("Select Category"),
+              DropdownButtonFormField<String>(
+                value: selectedCategory,
+                items: categories.map((category) {
+                  return DropdownMenuItem<String>(
+                    value: category,
+                    child: Text(category),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedCategory = value;
+                    selectedAccessories =
+                        null; // Reset accessories when category changes
+                  });
+                },
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(25)),
+                ),
+              ),
+              const SizedBox(height: 10),
               Text("Select Brand"),
               DropdownButtonFormField<String>(
                 value: selectedBrand,
@@ -100,26 +128,33 @@ class _AddProductsState extends State<AddProducts> {
                 ),
               ),
               const SizedBox(height: 10),
-              Text("Select Category"),
-              DropdownButtonFormField<String>(
-                value: selectedCategory,
-                items: categories.map((category) {
-                  return DropdownMenuItem<String>(
-                    value: category,
-                    child: Text(category),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedCategory = value;
-                  });
-                },
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(25)),
+              if (selectedCategory ==
+                  'Accessories') // Show this only if Accessories is selected
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Select Accessories"),
+                    DropdownButtonFormField<String>(
+                      value: selectedAccessories,
+                      items: accessories.map((accessory) {
+                        return DropdownMenuItem<String>(
+                          value: accessory,
+                          child: Text(accessory),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          selectedAccessories = value;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(25)),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 10),
               Text("Product Tags (comma separated)"),
               TextFormField(
                 controller: productTags,
@@ -150,21 +185,25 @@ class _AddProductsState extends State<AddProducts> {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
                 onPressed: () async {
+                  // Validate input fields
                   if (productTitle.text.isEmpty ||
                       productDescription.text.isEmpty ||
                       productPrice.text.isEmpty ||
                       selectedBrand == null ||
-                      selectedCategory == null ||
+                      (selectedCategory == 'Accessories' &&
+                          selectedAccessories ==
+                              null) || // Validate for accessories
                       selectedImage == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text("Please fill all fields!")),
                     );
-                    return;
+                    return; // Exit the function if validation fails
                   }
 
                   List<String> tags = productTags.text
                       .split(',')
                       .map((tag) => tag.trim())
+                      .where((tag) => tag.isNotEmpty) // Filter out empty tags
                       .toList();
 
                   try {
@@ -175,7 +214,10 @@ class _AddProductsState extends State<AddProducts> {
                       productPrice.text,
                       File(selectedImage!.path), // Convert XFile to File here
                       selectedBrand!,
-                      selectedCategory!,
+                      selectedCategory == 'Accessories'
+                          ? selectedAccessories!
+                          : '', // Add selected category here
+                      null, // Set to null if not applicable
                       tags,
                     );
                     print("Product added successfully");
@@ -189,12 +231,12 @@ class _AddProductsState extends State<AddProducts> {
                       productPrice.clear();
                       productTags.clear();
                       setState(() {
-                        
                         selectedImage = null;
                         selectedBrand = null;
-                        selectedCategory = null;
+                        selectedCategory = null; // Reset category
+                        selectedAccessories = null; // Reset accessories
                       });
-                      Navigator.pop(context);
+                      Navigator.pop(context); // Navigate back after submission
                     }
                   } catch (e) {
                     print("Failed to add product: $e");

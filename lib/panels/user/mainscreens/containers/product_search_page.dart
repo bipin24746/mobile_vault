@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:mobile_vault/panels/user/productDetailsScreens/lib/panels/user/productDetailsScreens/product_detail_page.dart';
+import 'package:mobile_vault/panels/user/productDetailsScreens/lib/panels/user/productDetailsScreens/containers/details.dart';
 
 import 'package:mobile_vault/services/database_product.dart';
 
@@ -25,8 +25,12 @@ class ProductSearchPage extends StatelessWidget {
         ),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: DatabaseProduct().viewProducts(), // Fetches all products
+        stream: DatabaseProduct().viewProducts('',
+            searchQuery: searchQuery), // Pass an empty category
         builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           }
@@ -76,7 +80,9 @@ class ProductSearchPage extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ProductDetailPage(product: product, userId: '',),
+                      builder: (context) => ProductDetailPage(
+                          product: product,
+                          userId: ''), // Replace with actual userId
                     ),
                   );
                 },
@@ -121,7 +127,7 @@ class ProductSearchPage extends StatelessWidget {
                             ),
                             SizedBox(height: 4),
                             Text(
-                              "\Rs. $price",
+                              "Rs. $price",
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,

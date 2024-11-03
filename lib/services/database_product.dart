@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class DatabaseProduct {
   final CollectionReference evaultProductDetails =
@@ -14,6 +15,7 @@ class DatabaseProduct {
       String filePath =
           'product_images/${DateTime.now().millisecondsSinceEpoch}.jpg';
 
+      // Check if image exists before uploading
       if (!await image.exists()) {
         print("Image file does not exist");
         return null;
@@ -32,14 +34,14 @@ class DatabaseProduct {
 
   // Function to add a new product to Firestore
   Future<void> addProduct(
-    String title,
-    String description,
-    String price,
-    File imageFile,
-    String brand,
-    String category,
-    List<String> tags,
-  ) async {
+      String title,
+      String description,
+      String price,
+      File imageFile,
+      String brand,
+      String category,
+      String? accessory,
+      List<String> tags) async {
     try {
       String? imageUrl = await uploadImageToFirebase(imageFile);
 
@@ -54,6 +56,7 @@ class DatabaseProduct {
         'imageUrl': imageUrl,
         'brand': brand,
         'category': category,
+        if (category == 'Accessories') 'accessory': accessory,
         'tags': tags,
       });
 
@@ -66,28 +69,31 @@ class DatabaseProduct {
 
   // Function to update an existing product in Firestore
   Future<void> updateProduct(
-    String id,
-    String title,
-    String description,
-    String price,
-    File? image,
-    String brand,
-    String category,
-    List<String> tags,
-  ) async {
+      String id,
+      String title,
+      String description,
+      String price,
+      File? image,
+      String brand,
+      String category,
+      String? accessory,
+      List<String> tags) async {
     try {
       String? imageUrl;
 
+      // Only upload image if provided
       if (image != null) {
         imageUrl = await uploadImageToFirebase(image);
       }
 
+      // Update product details
       await evaultProductDetails.doc(id).update({
         'title': title,
         'description': description,
         'price': price,
         'brand': brand,
         'category': category,
+        if (category == 'Accessories') 'accessory': accessory,
         'tags': tags,
         if (imageUrl != null) 'imageUrl': imageUrl,
       });
@@ -100,19 +106,25 @@ class DatabaseProduct {
 
   // Function to delete a product from Firestore
   Future<void> deleteProduct(String id) async {
-    await evaultProductDetails.doc(id).delete();
+    try {
+      await evaultProductDetails.doc(id).delete();
+      print("Product deleted successfully.");
+    } catch (e) {
+      print('Error deleting product: $e');
+    }
   }
 
-  // Stream to view products by category, or all products if category is empty
-  Stream<QuerySnapshot> viewProducts([String category = '']) {
-    if (category.isEmpty) {
-      return evaultProductDetails
-          .snapshots(); // Get all products if no category is specified
-    } else {
-      return evaultProductDetails
-          .where('category', isEqualTo: category)
-          .snapshots(); // Filter by category
+  // Stream to view products with an optional search query
+  Stream<QuerySnapshot> viewProducts(String category, {String? searchQuery}) {
+    Query query = evaultProductDetails;
+
+    if (searchQuery != null && searchQuery.isNotEmpty) {
+      query = query.where('title', isGreaterThanOrEqualTo: searchQuery).where(
+          'title',
+          isLessThanOrEqualTo: searchQuery + '\uf8ff'); // Case insensitive
     }
+
+    return query.snapshots();
   }
 
   // Function to check if a product is already in the cart
@@ -122,7 +134,8 @@ class DatabaseProduct {
         .where('productId', isEqualTo: productId)
         .get();
 
-    return cartSnapshot.docs.isNotEmpty;
+    return cartSnapshot
+        .docs.isNotEmpty; // Returns true if any documents are found
   }
 
   // Function to add a product to the cart collection
@@ -144,7 +157,7 @@ class DatabaseProduct {
         'price': price,
         'imageUrl': imageUrl,
         'quantity': 1, // Default quantity is 1
-        'description': description
+        'description': description,
       });
       print("Product added to cart successfully.");
     } catch (e) {
