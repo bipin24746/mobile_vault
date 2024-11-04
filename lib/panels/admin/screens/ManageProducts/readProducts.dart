@@ -21,7 +21,7 @@ class _ReadProductsState extends State<ReadProducts> {
         backgroundColor: Colors.blue,
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: DatabaseProduct().viewProducts('', searchQuery: ''),
+        stream: DatabaseProduct().viewProducts(category: '', searchQuery: ''),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

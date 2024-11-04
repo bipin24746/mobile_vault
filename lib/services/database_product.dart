@@ -115,16 +115,27 @@ class DatabaseProduct {
   }
 
   // Stream to view products with an optional search query
-  Stream<QuerySnapshot> viewProducts(String category, {String? searchQuery}) {
-    Query query = evaultProductDetails;
+  Stream<QuerySnapshot> viewProducts({
+    String? category,
+    String? brand,
+    String? searchQuery,
+  }) {
+    Query query = evaultProductDetails; // Use your defined collection reference
 
+    // Apply filters based on the parameters
+    if (category != null && category != 'All') {
+      query = query.where('category', isEqualTo: category);
+    }
+    if (brand != null && brand != 'All') {
+      query = query.where('brand', isEqualTo: brand);
+    }
     if (searchQuery != null && searchQuery.isNotEmpty) {
-      query = query.where('title', isGreaterThanOrEqualTo: searchQuery).where(
-          'title',
-          isLessThanOrEqualTo: searchQuery + '\uf8ff'); // Case insensitive
+      query = query
+          .where('title', isGreaterThanOrEqualTo: searchQuery)
+          .where('title', isLessThanOrEqualTo: searchQuery + '\uf8ff');
     }
 
-    return query.snapshots();
+    return query.snapshots(); // Return the stream of products
   }
 
   // Function to check if a product is already in the cart

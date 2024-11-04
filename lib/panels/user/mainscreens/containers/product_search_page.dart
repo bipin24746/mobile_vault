@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mobile_vault/panels/user/productDetailsScreens/lib/panels/user/productDetailsScreens/containers/details.dart';
@@ -6,8 +7,10 @@ import 'package:mobile_vault/services/database_product.dart';
 
 class ProductSearchPage extends StatelessWidget {
   final String searchQuery;
+  final String category;
+  final String brand;
 
-  const ProductSearchPage({Key? key, required this.searchQuery})
+  const ProductSearchPage({Key? key, required this.searchQuery,required this.category,required this.brand})
       : super(key: key);
 
   @override
@@ -25,8 +28,7 @@ class ProductSearchPage extends StatelessWidget {
         ),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: DatabaseProduct().viewProducts('',
-            searchQuery: searchQuery), // Pass an empty category
+        stream: DatabaseProduct().viewProducts(category: category, brand: brand, searchQuery: searchQuery),// Pass an empty category
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));

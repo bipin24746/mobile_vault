@@ -62,7 +62,10 @@ class _LoginpageState extends State<Loginpage> {
         } else if (role == "user") {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => UserPage(userId: '',)),
+            MaterialPageRoute(
+                builder: (context) => UserPage(
+                      userId: '',
+                    )),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(

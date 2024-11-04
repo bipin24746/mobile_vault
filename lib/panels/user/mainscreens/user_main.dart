@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_vault/panels/user/CartPage.dart';
 
-import 'package:mobile_vault/panels/user/mainscreens/containers/categories.dart';
 import 'package:mobile_vault/panels/user/mainscreens/containers/product_search_page.dart';
 import 'package:mobile_vault/panels/user/mainscreens/containers/products.dart';
 import 'package:mobile_vault/panels/user/mainscreens/containers/searchbar.dart';
@@ -16,7 +15,7 @@ class UserPage extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ProductSearchPage(searchQuery: query),
+        builder: (context) => ProductSearchPage(searchQuery: query, category: '', brand: '',),
       ),
     );
   }
@@ -51,7 +50,6 @@ class UserPage extends StatelessWidget {
         child: Column(
           children: [
             Searchbar(onSearch: (query) => onSearch(context, query)),
-            CategoriesPage(),
             Expanded(
               child: ProductsPage(
                 searchQuery: '',
