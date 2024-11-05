@@ -20,22 +20,7 @@ class AddBuyProducts extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
-  void _addToCart(BuildContext context) async {
-    bool isInCart = await DatabaseProduct().checkIfInCart(userId, productId);
-
-    if (isInCart) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Already in cart"),
-      ));
-    } else {
-      await DatabaseProduct().addToCart(userId, productId, title, price, imageUrl, description);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Added to cart"),
-      ));
-    }
-  }
-
-  void _navigateToBuyNowPage(BuildContext context) {
+ void _navigateToBuyNowPage(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -65,12 +50,7 @@ class AddBuyProducts extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 16),
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () => _addToCart(context),
-              child: const Text("Add To Cart"),
-            ),
-          ),
+          
         ],
       ),
     );
