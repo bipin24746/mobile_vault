@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mobile_vault/panels/user/productDetailsScreens/lib/panels/user/productDetailsScreens/product_detail_page.dart';
-
 import 'package:mobile_vault/services/database_product.dart';
 
 class ProductsPage extends StatefulWidget {
@@ -17,8 +16,7 @@ class ProductsPage extends StatefulWidget {
 class _ProductsPageState extends State<ProductsPage> {
   String selectedCategory = "All";
   String selectedBrand = "All";
-  String selectedAlphabetSort = "A-Z"; // Default alphabetical sort
-  String selectedPriceSort = "None"; // Default price sort (None)
+  String selectedSortOption = "None"; // Default sort option
 
   List<String> categories = [
     "All",
@@ -41,13 +39,10 @@ class _ProductsPageState extends State<ProductsPage> {
     'Huawei',
   ];
 
-  List<String> alphabetSortOptions = [
+  List<String> sortOptions = [
+    "None",
     "A-Z",
     "Z-A",
-  ];
-
-  List<String> priceSortOptions = [
-    "None",
     "Low to High",
     "High to Low",
   ];
@@ -130,41 +125,20 @@ class _ProductsPageState extends State<ProductsPage> {
             ),
           ),
 
-          // Sort Options: Alphabet and Price side by side
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              // Alphabetical Sort Dropdown
-              DropdownButton<String>(
-                value: selectedAlphabetSort,
-                items: alphabetSortOptions.map((option) {
-                  return DropdownMenuItem(
-                    value: option,
-                    child: Text("Sort: $option"),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedAlphabetSort = value!;
-                  });
-                },
-              ),
-              // Price Sort Dropdown
-              DropdownButton<String>(
-                value: selectedPriceSort,
-                items: priceSortOptions.map((option) {
-                  return DropdownMenuItem(
-                    value: option,
-                    child: Text("Price: $option"),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedPriceSort = value!;
-                  });
-                },
-              ),
-            ],
+          // Combined Sort Options Dropdown
+          DropdownButton<String>(
+            value: selectedSortOption,
+            items: sortOptions.map((option) {
+              return DropdownMenuItem(
+                value: option,
+                child: Text("Sort: $option"),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                selectedSortOption = value!;
+              });
+            },
           ),
 
           // Product List
@@ -192,27 +166,30 @@ class _ProductsPageState extends State<ProductsPage> {
                 // Sorting the products based on selected options
                 List<DocumentSnapshot> products = snapshot.data!.docs;
 
-                // Apply Alphabetical sorting
-                if (selectedAlphabetSort == "A-Z") {
-                  products.sort((a, b) => a['title'].compareTo(b['title']));
-                } else if (selectedAlphabetSort == "Z-A") {
-                  products.sort((a, b) => b['title'].compareTo(a['title']));
+                // Apply sorting based on the selected sort option
+                if (selectedSortOption == "A-Z") {
+                  products.sort((a, b) => a['title']
+                      .toString()
+                      .toLowerCase()
+                      .compareTo(b['title'].toString().toLowerCase()));
+                } else if (selectedSortOption == "Z-A") {
+                  products.sort((a, b) => b['title']
+                      .toString()
+                      .toLowerCase()
+                      .compareTo(a['title'].toString().toLowerCase()));
+                } else if (selectedSortOption == "Low to High") {
+                  products.sort((a, b) {
+                    final priceA = double.tryParse(a['price'].toString()) ?? 0;
+                    final priceB = double.tryParse(b['price'].toString()) ?? 0;
+                    return priceA.compareTo(priceB);
+                  });
+                } else if (selectedSortOption == "High to Low") {
+                  products.sort((a, b) {
+                    final priceA = double.tryParse(a['price'].toString()) ?? 0;
+                    final priceB = double.tryParse(b['price'].toString()) ?? 0;
+                    return priceB.compareTo(priceA);
+                  });
                 }
-
-                // Apply Price sorting if selected
-               if (selectedPriceSort == "Low to High") {
-  products.sort((a, b) {
-    final priceA = double.tryParse(a['price'].toString()) ?? 0;
-    final priceB = double.tryParse(b['price'].toString()) ?? 0;
-    return priceA.compareTo(priceB);
-  });
-} else if (selectedPriceSort == "High to Low") {
-  products.sort((a, b) {
-    final priceA = double.tryParse(a['price'].toString()) ?? 0;
-    final priceB = double.tryParse(b['price'].toString()) ?? 0;
-    return priceB.compareTo(priceA);
-  });
-}
 
                 return GridView.builder(
                   padding: EdgeInsets.all(10),
