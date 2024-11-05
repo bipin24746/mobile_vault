@@ -15,30 +15,42 @@ class ProductsPage extends StatefulWidget {
 }
 
 class _ProductsPageState extends State<ProductsPage> {
-  String selectedCategory = "All"; // Default to "All" category
-  String selectedBrand = "All"; // Default to "All" brand
+  String selectedCategory = "All";
+  String selectedBrand = "All";
+  String selectedAlphabetSort = "A-Z"; // Default alphabetical sort
+  String selectedPriceSort = "None"; // Default price sort (None)
 
   List<String> categories = [
     "All",
-    'Tablet',
-    'Mobile',
-    'Home & Kitchen',
-    'Beauty',
-    'Sports',
+    'SmartPhones',
+    'Chargers',
+    'Headsets',
+    'Cases and Covers',
+    'Screen protectors',
+    'Power Bank',
   ];
 
   List<String> brands = [
     "All",
-    'Samsung',
     'Apple',
-    'OnePlus'
-  ]; // Example brands
+    'Samsung',
+    'Xiaomi',
+    'Oppo',
+    'Vivo',
+    'Realme',
+    'Huawei',
+  ];
 
-  @override
-  void initState() {
-    super.initState();
-    // No need to change anything here since we already defaulted to "All"
-  }
+  List<String> alphabetSortOptions = [
+    "A-Z",
+    "Z-A",
+  ];
+
+  List<String> priceSortOptions = [
+    "None",
+    "Low to High",
+    "High to Low",
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -118,13 +130,51 @@ class _ProductsPageState extends State<ProductsPage> {
             ),
           ),
 
+          // Sort Options: Alphabet and Price side by side
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              // Alphabetical Sort Dropdown
+              DropdownButton<String>(
+                value: selectedAlphabetSort,
+                items: alphabetSortOptions.map((option) {
+                  return DropdownMenuItem(
+                    value: option,
+                    child: Text("Sort: $option"),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedAlphabetSort = value!;
+                  });
+                },
+              ),
+              // Price Sort Dropdown
+              DropdownButton<String>(
+                value: selectedPriceSort,
+                items: priceSortOptions.map((option) {
+                  return DropdownMenuItem(
+                    value: option,
+                    child: Text("Price: $option"),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedPriceSort = value!;
+                  });
+                },
+              ),
+            ],
+          ),
+
+          // Product List
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-    stream: DatabaseProduct().viewProducts(
-      category: selectedCategory,  // These are still used for filtering
-      brand: selectedBrand,
-      searchQuery: '',
-    ),
+              stream: DatabaseProduct().viewProducts(
+                category: selectedCategory,
+                brand: selectedBrand,
+                searchQuery: '',
+              ),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(child: CircularProgressIndicator());
@@ -139,7 +189,30 @@ class _ProductsPageState extends State<ProductsPage> {
                   );
                 }
 
-                final products = snapshot.data!.docs;
+                // Sorting the products based on selected options
+                List<DocumentSnapshot> products = snapshot.data!.docs;
+
+                // Apply Alphabetical sorting
+                if (selectedAlphabetSort == "A-Z") {
+                  products.sort((a, b) => a['title'].compareTo(b['title']));
+                } else if (selectedAlphabetSort == "Z-A") {
+                  products.sort((a, b) => b['title'].compareTo(a['title']));
+                }
+
+                // Apply Price sorting if selected
+               if (selectedPriceSort == "Low to High") {
+  products.sort((a, b) {
+    final priceA = double.tryParse(a['price'].toString()) ?? 0;
+    final priceB = double.tryParse(b['price'].toString()) ?? 0;
+    return priceA.compareTo(priceB);
+  });
+} else if (selectedPriceSort == "High to Low") {
+  products.sort((a, b) {
+    final priceA = double.tryParse(a['price'].toString()) ?? 0;
+    final priceB = double.tryParse(b['price'].toString()) ?? 0;
+    return priceB.compareTo(priceA);
+  });
+}
 
                 return GridView.builder(
                   padding: EdgeInsets.all(10),

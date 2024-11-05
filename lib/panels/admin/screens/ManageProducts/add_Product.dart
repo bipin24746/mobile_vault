@@ -20,11 +20,21 @@ class _AddProductsState extends State<AddProducts> {
   String? selectedBrand; // To hold the selected brand
   String? selectedAccessories; // To hold the selected accessories
   List<String> categories = ['Smartphones', 'Accessories']; // Categories
-  List<String> brands = ['Samsung', 'Apple', 'OnePlus']; // Example brand list
+  List<String> brands = [
+    'Apple',
+    'Samsung',
+    'Xiaomi',
+    'Oppo',
+    'Vivo',
+    'Realme',
+    'Huawei',
+  ]; // Example brand list
   List<String> accessories = [
-    'Charger',
-    'Case',
-    'Headphones'
+    'Chargers',
+    'Headsets',
+    'Cases and Covers',
+    'Screen protectors',
+    'Power Bank'
   ]; // Example accessories list
 
   XFile? selectedImage; // To hold the selected image file
