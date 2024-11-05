@@ -42,6 +42,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     final imageUrl = widget.product['imageUrl'] ?? '';
     final description =
         widget.product['description'] ?? 'No Description Available';
+    final productCategory =
+        widget.product['category'] ?? ''; // Get category dynamically
 
     return Scaffold(
       appBar: AppBar(
@@ -58,10 +60,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   ProductImage(imageUrl: imageUrl),
                   ProductTitlePrice(title: title, price: price),
                   ProductDescription(description: description),
-                  const SizedBox(
-                      height:
-                          20), // Space between description and recommendations
-                  _buildRecommendations(title), // Pass title here
+                  const SizedBox(height: 20),
+                  _buildRecommendations(title, productCategory, productId),
                 ],
               ),
             ),
@@ -79,7 +79,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     );
   }
 
-  Widget _buildRecommendations(String title) {
+  Widget _buildRecommendations(
+      String title, String productCategory, String openedProductId) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -94,6 +95,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('Evault Products')
+              .where('category',
+                  isEqualTo: productCategory) // Filter by current category
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -106,58 +109,28 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               return const Center(child: Text("No recommendations found."));
             }
 
-            final allProducts = snapshot.data!.docs;
-            final List<Map<String, dynamic>> prioritizedProducts = [];
-
-            // Separate lists for different matching criteria
-            final List<Map<String, dynamic>> categoryMatches = [];
-            final List<Map<String, dynamic>> brandOrNameMatches = [];
-            final List<Map<String, dynamic>> otherProducts = [];
-
-            // Categorizing products
-            for (var doc in allProducts) {
+            // Exclude the currently viewed product from recommendations
+            final recommendedProducts = snapshot.data!.docs
+                .where((doc) =>
+                    doc.id != openedProductId) // Exclude opened product
+                .map((doc) {
               final productData = doc.data() as Map<String, dynamic>;
-              final productTags = List<String>.from(productData['tags'] ?? []);
-              final productBrand = productData['brand'] ?? '';
-              final productCategory = productData['category'] ?? '';
-              final productTitle = productData['title'] ?? '';
+              productData['id'] = doc.id; // Add document ID to product data
+              return productData;
+            }).toList();
 
-              // Check if the search is by category
-              if (productCategory == category) {
-                categoryMatches.add(productData);
-              }
-              // Check if the search is by brand or specific product name
-              else if (productBrand == brand ||
-                  (title.isNotEmpty &&
-                      productTitle
-                          .toLowerCase()
-                          .contains(title.toLowerCase()))) {
-                brandOrNameMatches.add(productData);
-              } else {
-                otherProducts.add(productData);
-              }
+            if (recommendedProducts.isEmpty) {
+              return const Center(
+                  child: Text("No other products available in this category."));
             }
-
-            // Randomly shuffle other products for variety
-            otherProducts.shuffle(Random());
-
-            // Combine lists with priority
-            prioritizedProducts.addAll(categoryMatches);
-            prioritizedProducts.addAll(brandOrNameMatches);
-            prioritizedProducts.addAll(otherProducts);
-
-            // Limit the number of products displayed if needed
-            // Uncomment below to limit to first 20 products
-            // prioritizedProducts = prioritizedProducts.take(20).toList();
 
             return ListView.builder(
               physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: true,
-              itemCount: prioritizedProducts.length,
+              itemCount: recommendedProducts.length,
               itemBuilder: (context, index) {
-                final recommendedProduct = prioritizedProducts[index];
-                final recommendedProductId = recommendedProduct[
-                    'id']; // Ensure 'id' is included in the data
+                final recommendedProduct = recommendedProducts[index];
+                final recommendedProductId = recommendedProduct['id'];
                 final recommendedProductTitle = recommendedProduct['title'];
                 final recommendedProductImage = recommendedProduct['imageUrl'];
                 final recommendedProductPrice = recommendedProduct['price'];
@@ -186,7 +159,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               },
             );
           },
-          
         ),
       ],
     );
