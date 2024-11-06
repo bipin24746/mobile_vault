@@ -96,7 +96,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           stream: FirebaseFirestore.instance
               .collection('Evault Products')
               .where('category',
-                  isEqualTo: productCategory) // Filter by current category
+                  isEqualTo: productCategory) // Filter by category
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -119,17 +119,29 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               return productData;
             }).toList();
 
-            if (recommendedProducts.isEmpty) {
+            // Step 1: Filter products by matching category only
+            final categoryMatchingProducts = recommendedProducts
+                .where((product) => product['category'] == productCategory)
+                .toList();
+
+            if (categoryMatchingProducts.isEmpty) {
               return const Center(
-                  child: Text("No other products available in this category."));
+                  child: Text("No products found in this category."));
             }
+
+            // Step 2: Sort products by relevance score based on brand and tags
+            categoryMatchingProducts.sort((a, b) {
+              int scoreA = _calculateRelevanceScore(a);
+              int scoreB = _calculateRelevanceScore(b);
+              return scoreB - scoreA; // Higher score comes first
+            });
 
             return ListView.builder(
               physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: true,
-              itemCount: recommendedProducts.length,
+              itemCount: categoryMatchingProducts.length,
               itemBuilder: (context, index) {
-                final recommendedProduct = recommendedProducts[index];
+                final recommendedProduct = categoryMatchingProducts[index];
                 final recommendedProductId = recommendedProduct['id'];
                 final recommendedProductTitle = recommendedProduct['title'];
                 final recommendedProductImage = recommendedProduct['imageUrl'];
@@ -162,5 +174,41 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         ),
       ],
     );
+  }
+
+  // Calculate relevance score based on matching brand and tags
+  int _calculateRelevanceScore(Map<String, dynamic> product) {
+    int score = 0;
+
+    // Increase score for matching brand
+    if (product['brand'] == brand) {
+      score += 10; // Higher priority for brand match
+    }
+
+    // Increase score for matching tags
+    List<String> productTags = List<String>.from(product['tags'] ?? []);
+    for (String tag in tags) {
+      if (productTags.contains(tag)) {
+        score += 5; // Moderate priority for tag match
+      }
+    }
+
+    return score;
+  }
+
+  // Check if the product matches the current brand
+  bool _matchesBrand(Map<String, dynamic> product) {
+    return product['brand'] == brand; // Match brand
+  }
+
+  // Check if the product matches any of the tags
+  bool _matchesTags(Map<String, dynamic> product) {
+    List<String> productTags = List<String>.from(product['tags'] ?? []);
+    for (String tag in tags) {
+      if (productTags.contains(tag)) {
+        return true; // Match any tag
+      }
+    }
+    return false;
   }
 }

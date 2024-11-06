@@ -33,7 +33,9 @@ class ProductSearchPage extends StatelessWidget {
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: DatabaseProduct().viewProducts(
-            category: category, brand: brand, ),
+          category: category,
+          brand: brand,
+        ),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
@@ -49,24 +51,26 @@ class ProductSearchPage extends StatelessWidget {
           }
 
           // Filter products based on search query in title, brand, category, or tags
-         final products = snapshot.data!.docs.where((doc) {
-  final data = doc.data() as Map<String, dynamic>;
-  final title = data['title']?.toString().toLowerCase() ?? '';
-  final tags = (data['tags'] as List<dynamic>?)
-      ?.map((tag) => tag.toString().toLowerCase()) ?? [];
-  final docCategory = data['category']?.toString().toLowerCase() ?? '';
-  final docBrand = data['brand']?.toString().toLowerCase() ?? '';
-  final lowerQuery = searchQuery.toLowerCase();
+          final products = snapshot.data!.docs.where((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            final title = data['title']?.toString().toLowerCase() ?? '';
+            final tags = (data['tags'] as List<dynamic>?)
+                    ?.map((tag) => tag.toString().toLowerCase()) ??
+                [];
+            final docCategory =
+                data['category']?.toString().toLowerCase() ?? '';
+            final docBrand = data['brand']?.toString().toLowerCase() ?? '';
+            final lowerQuery = searchQuery.toLowerCase();
 
-  // Match if searchQuery is found in any part of title, tags, category, or brand
-  final titleMatches = title.contains(lowerQuery);
-  final tagsMatch = tags.any((tag) => tag.contains(lowerQuery));
-  final categoryMatch = docCategory.contains(lowerQuery);
-  final brandMatch = docBrand.contains(lowerQuery);
+            // Match if searchQuery is found in any part of title, tags, category, or brand
+            final titleMatches = title.contains(lowerQuery);
+            final tagsMatch = tags.any((tag) => tag.contains(lowerQuery));
+            final categoryMatch = docCategory.contains(lowerQuery);
+            final brandMatch = docBrand.contains(lowerQuery);
 
-  // Show the product if there’s a match in any field
-  return titleMatches || tagsMatch || categoryMatch || brandMatch;
-}).toList();
+            // Show the product if there’s a match in any field
+            return titleMatches || tagsMatch || categoryMatch || brandMatch;
+          }).toList();
 
           if (products.isEmpty) {
             return Center(
