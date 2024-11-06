@@ -75,7 +75,8 @@ class _AdminHomeState extends State<AdminHome> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ManageProductsAdmin()),
+                  MaterialPageRoute(
+                      builder: (context) => ManageProductsAdmin()),
                 );
               },
             ),
@@ -84,7 +85,8 @@ class _AdminHomeState extends State<AdminHome> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ViewOrderPage(userId: userId)),
+                  MaterialPageRoute(
+                      builder: (context) => ViewOrderPage(userId: userId)),
                 );
               },
             ),
@@ -135,13 +137,15 @@ class _AdminHomeState extends State<AdminHome> {
                 _buildAdminButton(Icons.shopping_bag, "Manage Products", () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => ManageProductsAdmin()),
+                    MaterialPageRoute(
+                        builder: (context) => ManageProductsAdmin()),
                   );
                 }),
                 _buildAdminButton(Icons.receipt_long, "View Orders", () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => ViewOrderPage(userId: userId)),
+                    MaterialPageRoute(
+                        builder: (context) => ViewOrderPage(userId: userId)),
                   );
                 }),
                 _buildAdminButton(Icons.people, "User Info", () {
