@@ -47,6 +47,7 @@ class _UpdateProductState extends State<UpdateProduct> {
   final List<String> accessories = ['Charger', 'Earphones', 'Case'];
 
   @override
+  @override
   void initState() {
     super.initState();
     productTitle.text = widget.initialTitle;
@@ -54,7 +55,14 @@ class _UpdateProductState extends State<UpdateProduct> {
     productPrice.text = widget.initialPrice;
     productTags.text = widget.initialTags.join(', ');
 
-    selectedBrand = widget.initialBrand;
+    // Initialize selectedBrand safely, either from widget or default to the first brand
+    selectedBrand = widget.initialBrand != null &&
+            brands.contains(widget.initialBrand)
+        ? widget.initialBrand
+        : brands.isNotEmpty
+            ? brands
+                .first // Default to the first brand in the list if initialBrand is invalid
+            : null;
 
     // Initialize selectedAccessory safely
     if (widget.initialAccessory != null &&

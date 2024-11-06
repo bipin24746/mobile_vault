@@ -19,7 +19,7 @@ class _AddProductsState extends State<AddProducts> {
   String? selectedCategory; // To hold the selected category
   String? selectedBrand; // To hold the selected brand
   String? selectedAccessories; // To hold the selected accessories
-  List<String> categories = ['Smartphones', 'Accessories']; // Categories
+  List<String> categories = ['SmartPhones', 'Accessories']; // Categories
   List<String> brands = [
     'Apple',
     'Samsung',
@@ -226,7 +226,7 @@ class _AddProductsState extends State<AddProducts> {
                       selectedBrand!,
                       selectedCategory == 'Accessories'
                           ? selectedAccessories!
-                          : '', // Add selected category here
+                          : 'SmartPhones', // Add selected category here
                       null, // Set to null if not applicable
                       tags,
                     );

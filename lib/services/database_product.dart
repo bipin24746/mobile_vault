@@ -28,37 +28,42 @@ class DatabaseProduct {
     }
   }
 
-  // Function to add a new product to Firestore
+  // Function to add a product to Firestore
   Future<void> addProduct(
-      String title,
-      String description,
-      String price,
-      File imageFile,
-      String brand,
-      String category,
-      String? accessory,
-      List<String> tags) async {
+    String title,
+    String description,
+    String price,
+    File image,
+    String brand,
+    String category,
+    String? accessory,
+    List<String> tags,
+  ) async {
     try {
-      String? imageUrl = await uploadImageToFirebase(imageFile);
+      String? imageUrl;
 
-      if (imageUrl == null) {
-        throw Exception("Failed to upload image");
+      // Upload image if available
+      if (image != null) {
+        imageUrl = await uploadImageToFirebase(image);
       }
 
-      await evaultProductDetails.add({
+      // Prepare the product data
+      Map<String, dynamic> productData = {
         'title': title,
         'description': description,
         'price': price,
-        'imageUrl': imageUrl,
         'brand': brand,
         'category': category,
-        if (category == 'Accessories') 'accessory': accessory,
         'tags': tags,
-      });
+        if (category == 'Accessories') 'accessory': accessory,
+        if (imageUrl != null) 'imageUrl': imageUrl,
+      };
 
+      // Add product to Firestore collection
+      await evaultProductDetails.add(productData);
       print("Product added successfully: $title");
     } catch (e) {
-      print('Error uploading product: $e');
+      print('Error adding product: $e');
       throw e;
     }
   }
@@ -77,6 +82,7 @@ class DatabaseProduct {
     try {
       String? imageUrl;
 
+      // Upload image if available
       if (image != null) {
         imageUrl = await uploadImageToFirebase(image);
       }
@@ -108,7 +114,6 @@ class DatabaseProduct {
     }
   }
 
-  // Stream to view products with an optional search query
   Stream<QuerySnapshot> viewProducts({String? category, String? brand}) {
     Query query = evaultProductDetails;
 
@@ -121,5 +126,16 @@ class DatabaseProduct {
     }
 
     return query.snapshots();
+  }
+
+  // Function to get product details by ID (for updating)
+  Future<DocumentSnapshot> getProductById(String id) async {
+    try {
+      DocumentSnapshot snapshot = await evaultProductDetails.doc(id).get();
+      return snapshot;
+    } catch (e) {
+      print('Error getting product by ID: $e');
+      throw e;
+    }
   }
 }

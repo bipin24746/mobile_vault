@@ -147,7 +147,6 @@ class _ProductsPageState extends State<ProductsPage> {
               stream: DatabaseProduct().viewProducts(
                 category: selectedCategory,
                 brand: selectedBrand,
-                
               ),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
