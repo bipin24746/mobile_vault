@@ -16,6 +16,14 @@ class _SearchbarState extends State<Searchbar> {
     widget.onSearch(query);
   }
 
+  // Method to handle when the search icon is clicked
+  void _onSearchIconClicked() {
+    final query = _controller.text.trim();
+    if (query.isNotEmpty) {
+      widget.onSearch(query); // Trigger the search when the icon is clicked
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -37,16 +45,19 @@ class _SearchbarState extends State<Searchbar> {
             Expanded(
               child: TextField(
                 controller: _controller,
-                onSubmitted: _onSearchSubmitted,
+                onSubmitted: _onSearchSubmitted, // Trigger search on "enter"
                 decoration: const InputDecoration(
                   border: InputBorder.none,
-                  hintText: "Search by title or tags",
+                  hintText: "Search Your Products",
                 ),
               ),
             ),
-            const Icon(
-              Icons.search_outlined,
-              color: Colors.red,
+            GestureDetector(
+              onTap: _onSearchIconClicked, // Trigger search on icon click
+              child: const Icon(
+                Icons.search_outlined,
+                color: Colors.red,
+              ),
             ),
           ],
         ),

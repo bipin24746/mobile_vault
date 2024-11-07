@@ -23,18 +23,15 @@ class _BuyNowPageState extends State<BuyNowPage> {
   final TextEditingController _emailController = TextEditingController();
 
   int _quantity = 1;
+  bool _isCashOnDeliverySelected = true; // To store if COD is selected
 
   double get totalPrice {
-    return double.parse(widget.product['price']) *
-        _quantity; // Calculate total price
+    return double.parse(widget.product['price']) * _quantity;
   }
 
   void _submitOrder() async {
     if (_formKey.currentState!.validate()) {
-      // Get the current user ID from FirebaseAuth
       final userId = FirebaseAuth.instance.currentUser?.uid;
-
-      // Ensure userId is not null
       if (userId == null) {
         print("Error: User is not logged in.");
         ScaffoldMessenger.of(context).showSnackBar(
@@ -43,24 +40,20 @@ class _BuyNowPageState extends State<BuyNowPage> {
         return;
       }
 
-      // Calculate total price based on quantity
       double pricePerItem =
-          double.tryParse(widget.product['price'].toString()) ??
-              0.0; // Convert the product price to double
-      double totalPrice = pricePerItem * _quantity; // Calculate total price
+          double.tryParse(widget.product['price'].toString()) ?? 0.0;
+      double totalPrice = pricePerItem * _quantity;
 
-      // Create a product list with the product details
       List<Map<String, dynamic>> products = [
         {
           'productId': widget.product['id'],
           'title': widget.product['title'],
-          'price': totalPrice.toString(), // Store total price in the database
+          'price': totalPrice.toString(),
           'quantity': _quantity,
           'imageUrl': widget.product['imageUrl'],
         }
       ];
 
-      // Store the user details and product information in the database
       await DatabaseOrder().placeOrder(
         userId,
         _nameController.text,
@@ -74,7 +67,6 @@ class _BuyNowPageState extends State<BuyNowPage> {
         content: Text("Order placed successfully!"),
       ));
 
-      // Optionally, navigate back or to another page
       Navigator.pop(context);
     }
   }
@@ -136,9 +128,27 @@ class _BuyNowPageState extends State<BuyNowPage> {
 
               // Display the total price
               Text(
-                "Total Price: Rs. ${totalPrice.toStringAsFixed(2)}", // Display total price
+                "Total Price: Rs. ${totalPrice.toStringAsFixed(2)}",
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
+              SizedBox(height: 20),
+
+              // Cash on Delivery option
+              Row(
+                children: [
+                  Radio(
+                    value: true,
+                    groupValue: _isCashOnDeliverySelected,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        _isCashOnDeliverySelected = value!;
+                      });
+                    },
+                  ),
+                  Text("Cash on Delivery")
+                ],
+              ),
+
               SizedBox(height: 20),
 
               // User Details Form
@@ -190,9 +200,21 @@ class _BuyNowPageState extends State<BuyNowPage> {
                       },
                     ),
                     SizedBox(height: 20),
+                    // Checkout Button
                     ElevatedButton(
-                      onPressed: _submitOrder,
-                      child: Text("Submit Order"),
+                      onPressed: () {
+                        if (_isCashOnDeliverySelected) {
+                          _submitOrder();
+                        } else {
+                          // Handle other payment options here if needed
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content:
+                                    Text("Please select a payment method")),
+                          );
+                        }
+                      },
+                      child: Text("Checkout"),
                     ),
                   ],
                 ),

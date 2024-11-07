@@ -50,6 +50,9 @@ class ProductSearchPage extends StatelessWidget {
                     Text("No products found", style: TextStyle(fontSize: 18)));
           }
 
+          // Remove spaces from search query
+          final lowerQuery = searchQuery.replaceAll(' ', '').toLowerCase();
+
           // Filter products based on search query in title, brand, category, or tags
           final products = snapshot.data!.docs.where((doc) {
             final data = doc.data() as Map<String, dynamic>;
@@ -60,13 +63,15 @@ class ProductSearchPage extends StatelessWidget {
             final docCategory =
                 data['category']?.toString().toLowerCase() ?? '';
             final docBrand = data['brand']?.toString().toLowerCase() ?? '';
-            final lowerQuery = searchQuery.toLowerCase();
 
             // Match if searchQuery is found in any part of title, tags, category, or brand
-            final titleMatches = title.contains(lowerQuery);
-            final tagsMatch = tags.any((tag) => tag.contains(lowerQuery));
-            final categoryMatch = docCategory.contains(lowerQuery);
-            final brandMatch = docBrand.contains(lowerQuery);
+            final titleMatches = title.replaceAll(' ', '').contains(lowerQuery);
+            final tagsMatch =
+                tags.any((tag) => tag.replaceAll(' ', '').contains(lowerQuery));
+            final categoryMatch =
+                docCategory.replaceAll(' ', '').contains(lowerQuery);
+            final brandMatch =
+                docBrand.replaceAll(' ', '').contains(lowerQuery);
 
             // Show the product if there’s a match in any field
             return titleMatches || tagsMatch || categoryMatch || brandMatch;
