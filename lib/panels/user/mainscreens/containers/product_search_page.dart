@@ -1,8 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:mobile_vault/panels/user/productDetailsScreens/lib/panels/user/productDetailsScreens/containers/details.dart';
-
+import 'package:mobile_vault/panels/user/productDetailsScreens/lib/panels/user/productDetailsScreens/product_detail_page.dart';
 import 'package:mobile_vault/services/database_product.dart';
 
 class ProductSearchPage extends StatelessWidget {
@@ -10,12 +8,12 @@ class ProductSearchPage extends StatelessWidget {
   final String category;
   final String brand;
 
-  const ProductSearchPage(
-      {Key? key,
-      required this.searchQuery,
-      required this.category,
-      required this.brand})
-      : super(key: key);
+  const ProductSearchPage({
+    Key? key,
+    required this.searchQuery,
+    required this.category,
+    required this.brand,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -46,14 +44,14 @@ class ProductSearchPage extends StatelessWidget {
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return Center(
-                child:
-                    Text("No products found", style: TextStyle(fontSize: 18)));
+              child: Text("No products found", style: TextStyle(fontSize: 18)),
+            );
           }
 
-          // Remove spaces from search query
+          // Normalized search query for comparison
           final lowerQuery = searchQuery.replaceAll(' ', '').toLowerCase();
 
-          // Filter products based on search query in title, brand, category, or tags
+          // Filtering products by search query, category, and brand
           final products = snapshot.data!.docs.where((doc) {
             final data = doc.data() as Map<String, dynamic>;
             final title = data['title']?.toString().toLowerCase() ?? '';
@@ -64,23 +62,25 @@ class ProductSearchPage extends StatelessWidget {
                 data['category']?.toString().toLowerCase() ?? '';
             final docBrand = data['brand']?.toString().toLowerCase() ?? '';
 
-            // Match if searchQuery is found in any part of title, tags, category, or brand
+            // Matching logic
             final titleMatches = title.replaceAll(' ', '').contains(lowerQuery);
-            final tagsMatch =
-                tags.any((tag) => tag.replaceAll(' ', '').contains(lowerQuery));
+            final tagsMatch = tags.any(
+              (tag) => tag.replaceAll(' ', '').contains(lowerQuery),
+            );
             final categoryMatch =
                 docCategory.replaceAll(' ', '').contains(lowerQuery);
             final brandMatch =
                 docBrand.replaceAll(' ', '').contains(lowerQuery);
 
-            // Show the product if there’s a match in any field
+            // Display if matches any of the fields
             return titleMatches || tagsMatch || categoryMatch || brandMatch;
           }).toList();
 
           if (products.isEmpty) {
             return Center(
-                child: Text("No products match your search.",
-                    style: TextStyle(fontSize: 18)));
+              child: Text("No products match your search.",
+                  style: TextStyle(fontSize: 18)),
+            );
           }
 
           return GridView.builder(
@@ -101,8 +101,9 @@ class ProductSearchPage extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) => ProductDetailPage(
-                          product: product,
-                          userId: ''), // Replace with actual userId
+                        product: product,
+                        userId: '', // Replace with actual userId if needed
+                      ),
                     ),
                   );
                 },
@@ -116,7 +117,7 @@ class ProductSearchPage extends StatelessWidget {
                         color: Colors.grey.withOpacity(0.5),
                         spreadRadius: 3,
                         blurRadius: 7,
-                        offset: Offset(0, 3), // changes position of shadow
+                        offset: Offset(0, 3),
                       ),
                     ],
                   ),
@@ -125,10 +126,12 @@ class ProductSearchPage extends StatelessWidget {
                       if (imageUrl != null)
                         ClipRRect(
                           borderRadius: BorderRadius.circular(20),
-                          child: Image.network(imageUrl,
-                              height: 110,
-                              width: double.infinity,
-                              fit: BoxFit.cover),
+                          child: Image.network(
+                            imageUrl,
+                            height: 110,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
                         )
                       else
                         Container(height: 70, color: Colors.grey),
@@ -144,6 +147,8 @@ class ProductSearchPage extends StatelessWidget {
                                 fontWeight: FontWeight.bold,
                                 color: Colors.blue,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                             SizedBox(height: 4),
                             Text(
@@ -151,7 +156,7 @@ class ProductSearchPage extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.red, // Price in red for emphasis
+                                color: Colors.red,
                               ),
                             ),
                           ],
